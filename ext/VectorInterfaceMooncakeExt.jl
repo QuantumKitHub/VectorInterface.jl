@@ -88,9 +88,7 @@ function Mooncake.frule!!(::Dual{typeof(scale!)}, C_ΔC::Dual{<:AbstractArray}, 
     α, Δα = extract(α_Δα)
 
     scale!(ΔC, ΔA, α)
-    if !isa(Δα, NoTangent)
-        add!(ΔC, A, Δα, One())
-    end
+    !isa(Δα, NoTangent) && add!(ΔC, A, Δα, One())
     scale!(C, A, α)
     return C_ΔC
 end
@@ -132,14 +130,8 @@ function Mooncake.frule!!(::Dual{typeof(add!)}, C_ΔC::Dual{<:AbstractArray}, A_
     α, Δα = extract(α_Δα)
     β, Δβ = extract(β_Δβ)
     add!(ΔC, ΔA, α, β)
-    if isa(Δβ, NoTangent) && !isa(Δα, NoTangent)
-        add!(ΔC, A, Δα, One())
-    elseif isa(Δα, NoTangent) && !isa(Δβ, NoTangent)
-        add!(ΔC, C, Δβ, One())
-    elseif !isa(Δα, NoTangent) && !isa(Δβ, NoTangent)
-        add!(ΔC, A, Δα, One())
-        add!(ΔC, C, Δβ, One())
-    end
+    !isa(Δα, NoTangent) && add!(ΔC, A, Δα, One())
+    !isa(Δβ, NoTangent) && add!(ΔC, C, Δβ, One())
     add!(C, A, α, β)
     return C_ΔC
 end
