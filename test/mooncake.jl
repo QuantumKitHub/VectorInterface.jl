@@ -11,15 +11,6 @@ rng = Random.default_rng()
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))
 precision(::Type{T}) where {T <: Union{Float64, ComplexF64}} = sqrt(eps(Float64))
 
-# Small adaptations to make tests work with MinimalVec
-#=function ChainRulesTestUtils.test_approx(::AbstractZero, x::MinimalVec, msg = ""; kwargs...)
-    return test_approx(zerovector(x), x, msg; kwargs...)
-end
-function ChainRulesTestUtils.test_approx(x::MinimalVec, ::AbstractZero, msg = ""; kwargs...)
-    return test_approx(x, zerovector(x), msg; kwargs...)
-end
-Base.collect(x::MinimalVec) = x.vec=#
-
 eltypes = (Float32, Float64, ComplexF64)
 
 @testset "scale ($T)" for T in eltypes
