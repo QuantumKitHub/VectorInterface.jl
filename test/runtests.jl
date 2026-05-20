@@ -38,5 +38,10 @@ end
 @static if isdefined(Base, :get_extension) && isempty(VERSION.prerelease)
     println("Testing AD rules")
     println("================")
+    println("Testing ChainRules")
+    println("==================")
     include("chainrules.jl")
+    println("Testing Mooncake")
+    println("==================")
+    include("mooncake.jl")
 end
