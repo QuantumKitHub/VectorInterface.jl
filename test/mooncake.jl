@@ -3,7 +3,7 @@ module MooncakeTests
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
-using Mooncake 
+using Mooncake
 using Random
 
 rng = Random.default_rng()

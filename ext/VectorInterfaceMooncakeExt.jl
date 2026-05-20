@@ -3,8 +3,8 @@ module VectorInterfaceMooncakeExt
 using VectorInterface
 using Mooncake
 using Mooncake: @is_primitive, DefaultCtx,
-                NoFData, NoRData, NoTangent,
-                CoDual, Dual, arrayify, primal, extract
+    NoFData, NoRData, NoTangent,
+    CoDual, Dual, arrayify, primal, extract
 
 # Projection
 # ----------
