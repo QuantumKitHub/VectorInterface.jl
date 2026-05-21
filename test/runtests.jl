@@ -35,6 +35,7 @@ module AquaVectorInterface
     Aqua.test_all(VectorInterface)
 end
 
+Base.collect(x::MinimalVec) = x.vec
 @static if isdefined(Base, :get_extension) && isempty(VERSION.prerelease)
     println("Testing AD rules")
     println("================")
