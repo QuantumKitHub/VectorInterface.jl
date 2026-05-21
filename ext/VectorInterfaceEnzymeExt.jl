@@ -1,5 +1,7 @@
 module VectorInterfaceEnzymeExt
 
+# COV_EXCL_START
+# Enzyme rules aren't reachable by coverage
 using VectorInterface
 using Enzyme
 using Enzyme.EnzymeCore
@@ -280,5 +282,6 @@ function EnzymeRules.forward(
         return nothing
     end
 end
+# COV_EXCL_STOP
 
 end
