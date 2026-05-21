@@ -38,6 +38,10 @@ end
 
 Base.collect(x::MinimalVec) = x.vec
 @static if isdefined(Base, :get_extension) && isempty(VERSION.prerelease)
+    println("Testing StaticArrays extension")
+    println("==============================")
+    include("staticsvec.jl")
+
     println("Testing AD rules")
     println("================")
     println("Testing ChainRules")
