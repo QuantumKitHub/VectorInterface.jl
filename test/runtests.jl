@@ -1,4 +1,5 @@
 using VectorInterface
+using VectorInterface: MinimalVec
 using Test
 println("Testing One and Zero")
 println("====================")
@@ -35,6 +36,7 @@ module AquaVectorInterface
     Aqua.test_all(VectorInterface)
 end
 
+Base.collect(x::MinimalVec) = x.vec
 @static if isdefined(Base, :get_extension) && isempty(VERSION.prerelease)
     println("Testing AD rules")
     println("================")
@@ -44,4 +46,7 @@ end
     println("Testing Mooncake")
     println("==================")
     include("mooncake.jl")
+    println("Testing Enzyme")
+    println("==================")
+    include("enzyme.jl")
 end
