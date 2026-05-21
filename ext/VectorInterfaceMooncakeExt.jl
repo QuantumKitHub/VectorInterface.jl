@@ -23,7 +23,7 @@ _needs_tangent(::Type{T}) where {T <: Number} =
 
 # scale
 # -----
-@is_primitive DefaultCtx Tuple{typeof(scale!), Any, Number}
+@is_primitive DefaultCtx Tuple{typeof(scale!), AbstractArray, Number}
 function Mooncake.rrule!!(::CoDual{typeof(scale!)}, C_ΔC::CoDual, α_Δα::CoDual{<:Number})
     # prepare arguments
     C, ΔC = arrayify(C_ΔC)
@@ -58,7 +58,7 @@ function Mooncake.frule!!(::Dual{typeof(scale!)}, C_ΔC::Dual, α_Δα::Dual{<:N
     return C_ΔC
 end
 
-@is_primitive DefaultCtx Tuple{typeof(scale!), Any, Any, Number}
+@is_primitive DefaultCtx Tuple{typeof(scale!), AbstractArray, AbstractArray, Number}
 
 function Mooncake.rrule!!(::CoDual{typeof(scale!)}, C_ΔC::CoDual, A_ΔA::CoDual, α_Δα::CoDual{<:Number})
     # prepare arguments
@@ -96,7 +96,7 @@ end
 # add
 # ---
 
-@is_primitive DefaultCtx Tuple{typeof(add!), Any, Any, Number, Number}
+@is_primitive DefaultCtx Tuple{typeof(add!), AbstractArray, AbstractArray, Number, Number}
 
 function Mooncake.rrule!!(::CoDual{typeof(add!)}, C_ΔC::CoDual, A_ΔA::CoDual, α_Δα::CoDual{<:Number}, β_Δβ::CoDual{<:Number})
     # prepare arguments
@@ -140,7 +140,7 @@ end
 # inner
 # -----
 
-@is_primitive DefaultCtx Tuple{typeof(inner), Any, Any}
+@is_primitive DefaultCtx Tuple{typeof(inner), AbstractArray, AbstractArray}
 
 function Mooncake.rrule!!(::CoDual{typeof(inner)}, A_ΔA::CoDual, B_ΔB::CoDual)
     # prepare arguments
