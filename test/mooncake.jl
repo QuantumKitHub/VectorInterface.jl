@@ -4,12 +4,20 @@ using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
 using Mooncake
+import Mooncake: arrayify
 using Random
 
 rng = Random.default_rng()
 
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))
 precision(::Type{T}) where {T <: Union{Float64, ComplexF64}} = sqrt(eps(Float64))
+
+function Mooncake.arrayify(A_dA::Mooncake.CoDual{<:MinimalVec})
+    return (Mooncake.primal(A_dA).vec, Mooncake.tangent(A_dA).data.vec)
+end
+function Mooncake.arrayify(A_dA::Mooncake.Dual{<:MinimalVec})
+    return (Mooncake.primal(A_dA).vec, Mooncake.tangent(A_dA).fields.vec)
+end
 
 eltypes = (Float32, Float64, ComplexF64)
 
