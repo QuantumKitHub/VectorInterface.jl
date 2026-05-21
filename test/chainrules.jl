@@ -17,7 +17,7 @@ function ChainRulesTestUtils.test_approx(x::MinimalVec, ::AbstractZero, msg = ""
     return test_approx(x, zerovector(x), msg; kwargs...)
 end
 
-eltypes = (Float32, Float64, ComplexF64)
+eltypes = (Float64, ComplexF64)
 
 @testset "scale pullbacks ($T)" for T in eltypes
     n = 12

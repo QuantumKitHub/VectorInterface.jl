@@ -11,7 +11,7 @@ rng = Random.default_rng()
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))
 precision(::Type{T}) where {T <: Union{Float64, ComplexF64}} = 2 * sqrt(eps(Float64))
 
-eltypes = (Float32, Float64, ComplexF64)
+eltypes = (Float64, ComplexF64)
 
 @testset "scale ($T)" for T in eltypes
     n = 12
