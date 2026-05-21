@@ -1,4 +1,5 @@
 using VectorInterface
+using VectorInterface: MinimalVec
 using Test
 println("Testing One and Zero")
 println("====================")
