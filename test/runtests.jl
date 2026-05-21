@@ -44,4 +44,7 @@ end
     println("Testing Mooncake")
     println("==================")
     include("mooncake.jl")
+    println("Testing Enzyme")
+    println("==================")
+    include("enzyme.jl")
 end
