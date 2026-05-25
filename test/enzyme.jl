@@ -1,5 +1,3 @@
-module EnzymeTests
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Enzyme, EnzymeTestUtils
@@ -139,6 +137,4 @@ end
     for RT in (Const, Duplicated)
         test_forward(inner, RT, (x, Duplicated), (y, Duplicated); atol, rtol)
     end
-end
-
 end

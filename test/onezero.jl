@@ -1,5 +1,3 @@
-module OneZero
-
 using Test
 using VectorInterface
 
@@ -92,6 +90,4 @@ end
         @test @inferred(convert(T, I)) == one(T)
         @test @inferred(convert(T, Z)) == zero(T)
     end
-end
-
 end

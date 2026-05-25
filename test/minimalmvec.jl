@@ -1,14 +1,13 @@
-module Minimal
 using VectorInterface
-using VectorInterface: MinimalVec, MinimalSVec
+using VectorInterface: MinimalVec, MinimalMVec
 using Test
 using TestExtras
 
 deepcollect(x::MinimalVec) = x.vec
 deepcollect(x::Number) = x
 
-x = MinimalSVec(randn(3))
-y = MinimalSVec(randn(3))
+x = MinimalMVec(randn(3))
+y = MinimalMVec(randn(3))
 
 @testset "scalartype" begin
     s = @constinferred scalartype(x)
@@ -21,7 +20,8 @@ end
     @test all(deepcollect(z) .=== zero(scalartype(x)))
     z1 = @constinferred zerovector!!(deepcopy(x))
     @test all(deepcollect(z1) .=== zero(scalartype(x)))
-    @test_throws ArgumentError zerovector!(deepcopy(x))
+    z2 = @constinferred zerovector!(deepcopy(x))
+    @test all(deepcollect(z2) .=== zero(scalartype(x)))
 
     z3 = @constinferred zerovector(x, ComplexF64)
     @test all(deepcollect(z3) .=== zero(ComplexF64))
@@ -42,8 +42,12 @@ end
     @test deepcollect(z2) ≈ (α .* deepcollect(x))
     @test all(deepcollect(xcopy) .== deepcollect(x))
 
-    @test_throws ArgumentError scale!(deepcopy(x), α)
-    @test_throws ArgumentError scale!(zerovector(x), deepcopy(x), α)
+    z3 = @constinferred scale!(deepcopy(x), α)
+    @test deepcollect(z3) ≈ (α .* deepcollect(x))
+    xcopy = deepcopy(x)
+    z3 = @constinferred scale!(zerovector(x), xcopy, α)
+    @test deepcollect(z3) ≈ (α .* deepcollect(x))
+    @test all(deepcollect(xcopy) .== deepcollect(x))
 
     α = randn(ComplexF64)
     z4 = @constinferred scale(x, α)
@@ -52,24 +56,30 @@ end
     z5 = @constinferred scale!!(xcopy, α)
     @test deepcollect(z5) ≈ (α .* deepcollect(x))
     @test all(deepcollect(xcopy) .== deepcollect(x))
+    @test_throws InexactError scale!(xcopy, α)
 
     α = randn(ComplexF64)
     xcopy = deepcopy(x)
     z6 = @constinferred scale!!(zerovector(x), xcopy, α)
     @test deepcollect(z6) ≈ (α .* deepcollect(x))
     @test all(deepcollect(xcopy) .== deepcollect(x))
+    @test_throws InexactError scale!(zerovector(x), xcopy, α)
 
     xz = @constinferred zerovector(x, ComplexF64)
     z6 = @constinferred scale!!(xz, xcopy, α)
     @test deepcollect(z6) ≈ (α .* deepcollect(x))
     @test all(deepcollect(xcopy) .== deepcollect(x))
 
+    z7 = @constinferred scale!(xz, xcopy, α)
+    @test deepcollect(z7) ≈ (α .* deepcollect(x))
+    @test all(deepcollect(xcopy) .== deepcollect(x))
+
     ycomplex = zerovector(y, ComplexF64)
     α = randn(Float64)
     xcopy = deepcopy(x)
     z8 = @constinferred scale!!(ycomplex, xcopy, α)
-    @test scalartype(z8) == ComplexF64
-    @test all(deepcollect(z8) .== α .* deepcollect(x))
+    @test z8 === ycomplex
+    @test all(deepcollect(z8) .== α .* deepcollect(xcopy))
 end
 
 @testset "add" begin
@@ -100,9 +110,15 @@ end
     @test all(deepcollect(xcopy) .== deepcollect(x))
 
     α, β = randn(2)
-    @test_throws ArgumentError add!(deepcopy(y), xcopy)
-    @test_throws ArgumentError add!(deepcopy(y), xcopy, α)
-    @test_throws ArgumentError add!(deepcopy(y), xcopy, α, β)
+    z3 = @constinferred add!(deepcopy(y), xcopy)
+    @test deepcollect(z3) ≈ (deepcollect(y) .+ deepcollect(x))
+    @test all(deepcollect(xcopy) .== deepcollect(x))
+    z3 = @constinferred add!(deepcopy(y), xcopy, α)
+    @test all(deepcollect(xcopy) .== deepcollect(x))
+    @test deepcollect(z3) ≈ (muladd.(deepcollect(x), α, deepcollect(y)))
+    z3 = @constinferred add!(deepcopy(y), xcopy, α, β)
+    @test deepcollect(z3) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* β))
+    @test all(deepcollect(xcopy) .== deepcollect(x))
 
     α, β = randn(ComplexF64, 2)
     z4 = @constinferred add(y, x, α)
@@ -125,6 +141,10 @@ end
     z5 = @constinferred add!!(deepcopy(y), xcopy, α, β)
     @test deepcollect(z5) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* β))
     @test all(deepcollect(xcopy) .== deepcollect(x))
+
+    α, β = randn(ComplexF64, 2)
+    @test_throws InexactError add!(deepcopy(y), xcopy, α)
+    @test_throws InexactError add!(deepcopy(y), xcopy, α, β)
 end
 
 @testset "inner" begin
@@ -134,6 +154,4 @@ end
     α, β = randn(ComplexF64, 2)
     s2 = @constinferred inner(scale(x, α), scale(y, β))
     @test s2 ≈ inner(α * deepcollect(x), β * deepcollect(y))
-end
-
 end

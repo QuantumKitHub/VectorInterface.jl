@@ -1,5 +1,3 @@
-module ChainRules
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
@@ -91,6 +89,4 @@ end
     mx = MinimalSVec(x)
     my = MinimalSVec(y)
     test_rrule(inner, mx, my; atol, rtol, check_inferred = false)
-end
-
 end

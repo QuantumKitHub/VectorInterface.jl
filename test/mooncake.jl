@@ -1,5 +1,3 @@
-module MooncakeTests
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
@@ -93,6 +91,4 @@ end
     mx = MinimalSVec(x)
     my = MinimalSVec(y)
     Mooncake.TestUtils.test_rule(rng, inner, mx, my; atol, rtol, is_primitive = false)
-end
-
 end

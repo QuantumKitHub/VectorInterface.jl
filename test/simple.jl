@@ -1,18 +1,18 @@
-module Minimal
 using VectorInterface
-using VectorInterface: MinimalVec, MinimalMVec
 using Test
 using TestExtras
 
-deepcollect(x::MinimalVec) = x.vec
+deepcollect(x) = vcat(map(deepcollect, x)...)
 deepcollect(x::Number) = x
 
-x = MinimalMVec(randn(3))
-y = MinimalMVec(randn(3))
+x = randn(3, 3, 3)
+y = randn(3, 3, 3)
 
 @testset "scalartype" begin
     s = @constinferred scalartype(x)
     @test s == Float64
+    @test_throws ArgumentError scalartype(())
+    @test_throws ArgumentError scalartype((randn(Float64, 2), randn(ComplexF64, 3)))
 end
 
 @testset "zerovector" begin
@@ -155,6 +155,4 @@ end
     α, β = randn(ComplexF64, 2)
     s2 = @constinferred inner(scale(x, α), scale(y, β))
     @test s2 ≈ inner(α * deepcollect(x), β * deepcollect(y))
-end
-
 end

@@ -1,4 +1,3 @@
-module Issues
 using VectorInterface
 using Test
 using TestExtras
@@ -14,6 +13,4 @@ end
 @testset begin
     @test promote_type(Bool, One) === promote_type(Bool, Zero) ===
         promote_type(One, Bool) === promote_type(Zero, Bool) === Bool
-end
-
 end
