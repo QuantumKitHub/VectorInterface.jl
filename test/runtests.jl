@@ -14,8 +14,4 @@ end
 args = parse_args(ARGS; custom = ["fast"])
 fast = !isnothing(args.custom["fast"])
 
-const init_code = quote
-    const fast_tests = $fast
-end
-
-ParallelTestRunner.runtests(VectorInterface, args; testsuite, init_code)
+ParallelTestRunner.runtests(VectorInterface, args; testsuite)
