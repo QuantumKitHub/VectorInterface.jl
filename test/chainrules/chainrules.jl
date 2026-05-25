@@ -6,6 +6,8 @@ using Test, TestExtras
 using ChainRulesTestUtils
 using ChainRulesCore: ChainRulesCore, AbstractZero
 
+Base.collect(x::MinimalVec) = x.vec
+
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))
 precision(::Type{T}) where {T <: Union{Float64, ComplexF64}} = sqrt(eps(Float64))
 

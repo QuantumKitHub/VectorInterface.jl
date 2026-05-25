@@ -6,6 +6,8 @@ using Enzyme, EnzymeTestUtils
 using Test, TestExtras
 using Random
 
+Base.collect(x::MinimalVec) = x.vec
+
 rng = Random.default_rng()
 
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))

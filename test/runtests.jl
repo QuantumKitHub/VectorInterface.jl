@@ -1,56 +1,21 @@
+using ParallelTestRunner
 using VectorInterface
-using VectorInterface: MinimalVec
-using Test
-println("Testing One and Zero")
-println("====================")
-include("onezero.jl")
 
-println("Testing with simple numerical array")
-println("===================================")
-include("simple.jl")
+testsuite = ParallelTestRunner.find_tests(@__DIR__)
 
-println("Testing with MinimalMVec")
-println("=======================")
-include("minimalmvec.jl")
-println("Testing with MinimalSVec")
-println("=======================")
-include("minimalsvec.jl")
-
-println("Testing with complicated composite object")
-println("=========================================")
-include("complicated.jl")
-
-println("Testing fallbacks with unsupported object")
-println("=========================================")
-include("unsupported.jl")
-
-println("Testing previously reported issues")
-println("==================================")
-include("issues.jl")
-
-println("Quality control test with Aqua.jl")
-println("=================================")
-module AquaVectorInterface
-    using VectorInterface
-    using Aqua
-    Aqua.test_all(VectorInterface)
+# Extension tests skip Julia prereleases (extensions are unstable there)
+if !isempty(VERSION.prerelease)
+    filter!(!startswith("chainrules") ∘ first, testsuite)
+    filter!(!startswith("mooncake") ∘ first, testsuite)
+    filter!(!startswith("enzyme") ∘ first, testsuite)
+    filter!(!startswith("staticsvec") ∘ first, testsuite)
 end
 
-Base.collect(x::MinimalVec) = x.vec
-@static if isdefined(Base, :get_extension) && isempty(VERSION.prerelease)
-    println("Testing StaticArrays extension")
-    println("==============================")
-    include("staticsvec.jl")
+args = parse_args(ARGS; custom = ["fast"])
+fast = !isnothing(args.custom["fast"])
 
-    println("Testing AD rules")
-    println("================")
-    println("Testing ChainRules")
-    println("==================")
-    include("chainrules.jl")
-    println("Testing Mooncake")
-    println("==================")
-    include("mooncake.jl")
-    println("Testing Enzyme")
-    println("==================")
-    include("enzyme.jl")
+const init_code = quote
+    const fast_tests = $fast
 end
+
+ParallelTestRunner.runtests(VectorInterface, args; testsuite, init_code)
