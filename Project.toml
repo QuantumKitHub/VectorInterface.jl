@@ -1,7 +1,7 @@
 name = "VectorInterface"
 uuid = "409d34a3-91d5-4945-b6ec-7529ddf182d8"
 authors = ["Jutho Haegeman <jutho.haegeman@ugent.be> and contributors"]
-version = "0.5.2"
+version = "0.6.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
