@@ -3,9 +3,6 @@ using VectorInterface
 
 testsuite = ParallelTestRunner.find_tests(@__DIR__)
 
-# Skip setup code
-filter!(!startswith("simplevec") ∘ first, testsuite)
-
 # Extension tests skip Julia prereleases (extensions are unstable there)
 if !isempty(VERSION.prerelease)
     filter!(!startswith("chainrules") ∘ first, testsuite)
