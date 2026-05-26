@@ -78,7 +78,7 @@ The `AbstractArray` (container) interface is — and should be — distinct from
 
 `VectorInterface.jl` avoids a design centered around types, and instead provides a small set of methods that together constitute a minimal vector-space interface.
 This way, any object can be made to work with this interface without conflating the notion of a container or iteration, and without the requirement for wrapper types to bypass the single supertype restriction in Julia.
-The interface is designed to be standalone and offers several features out of the box, such as recursive behavior for nested containers, as well as mutating and non-mutating functionality.
+The interface is designed to be standalone and offers several features out of the box, such as recursive behavior for nested `Base` containers, as well as mutating and non-mutating functionality.
 Additionally, there is also a "maybe-mutating" version of each function to enable library developers to write code that is agnostic to mutability of the underlying objects.
 
 
