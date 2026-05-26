@@ -1,10 +1,10 @@
-module EnzymeTests
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Enzyme, EnzymeTestUtils
 using Test, TestExtras
 using Random
+
+Base.collect(x::MinimalVec) = x.vec
 
 rng = Random.default_rng()
 
@@ -137,6 +137,4 @@ end
     for RT in (Const, Duplicated)
         test_forward(inner, RT, (x, Duplicated), (y, Duplicated); atol, rtol)
     end
-end
-
 end

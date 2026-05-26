@@ -1,10 +1,10 @@
-module ChainRules
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
 using ChainRulesTestUtils
 using ChainRulesCore: ChainRulesCore, AbstractZero
+
+Base.collect(x::MinimalVec) = x.vec
 
 precision(::Type{T}) where {T <: Union{Float32, ComplexF32}} = sqrt(eps(Float32))
 precision(::Type{T}) where {T <: Union{Float64, ComplexF64}} = sqrt(eps(Float64))
@@ -89,6 +89,4 @@ end
     mx = MinimalSVec(x)
     my = MinimalSVec(y)
     test_rrule(inner, mx, my; atol, rtol, check_inferred = false)
-end
-
 end

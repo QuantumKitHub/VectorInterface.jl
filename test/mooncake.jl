@@ -1,11 +1,11 @@
-module MooncakeTests
-
 using VectorInterface
 using VectorInterface: MinimalMVec, MinimalSVec, MinimalVec
 using Test, TestExtras
 using Mooncake
 import Mooncake: arrayify
 using Random
+
+Base.collect(x::MinimalVec) = x.vec
 
 rng = Random.default_rng()
 
@@ -91,6 +91,4 @@ end
     mx = MinimalSVec(x)
     my = MinimalSVec(y)
     Mooncake.TestUtils.test_rule(rng, inner, mx, my; atol, rtol, is_primitive = false)
-end
-
 end

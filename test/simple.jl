@@ -1,4 +1,3 @@
-module Simple
 using VectorInterface
 using Test
 using TestExtras
@@ -156,6 +155,4 @@ end
     α, β = randn(ComplexF64, 2)
     s2 = @constinferred inner(scale(x, α), scale(y, β))
     @test s2 ≈ inner(α * deepcollect(x), β * deepcollect(y))
-end
-
 end
