@@ -42,7 +42,7 @@ The Julia interface to access the basic vector operations has several rough edge
     A simple example from `Base` is a nested array: the type `Vector{Vector{T<:Number}}` still represents vectors with scalar type `T`, but `eltype` reports `Vector{T}`.
 
 3.  **`zero` and `fill!` don't compose well.**
-    `zero(v)` is fine in principle — it returns the additive neutral element — but the default implementation fails on e.g. nested arrays.
+    `zero(v)` is fine in principle — it returns the additive neutral element — but the default implementation might fail on more complicated data structures (it used to fail nested arrays in older Julia versions).
     For an in-place zero, `fill!(v, 0)` works for `v::AbstractArray{T<:Number}` but is a very `AbstractArray`-specific interface.
     The most general workaround is to scale by zero with `rmul!`, when available.
 
@@ -54,11 +54,10 @@ The Julia interface to access the basic vector operations has several rough edge
     New types may face an `eltype`-style incompatibility.
     For structured arrays, `length(v)` may not even reflect the vector-space dimension — for `UpperTriangular{T<:Number}`, the natural dimension is `n*(n+1)/2`, not `n*n`.
 
-6.  **`dot` is too permissive and `norm` lives in `LinearAlgebra`.**
-    Inner products and norms are `LinearAlgebra.dot` and `LinearAlgebra.norm`.
-    Unlike some of the previous issues, these natively support nested arrays.
-    But `dot` happily computes an inner product between things which are probably not vectors from the same vector space, e.g. `dot((1, 2, [3, 4]), [[1], (2,), (3, 4)])`.
-    In particular `dot` and `norm` accept tuples, even though tuples do not behave as vectors with respect to `+`, `*`, or `zero`.
+6.  Inner products and norms can be computed with `LinearAlgebra.dot` and `LinearAlgebra.norm`, thus requiring to load in all of `LinearAlgebra`.
+    Unlike some of the previous issues, these methods natively support nested arrays, but `dot` is arguably too permissive.
+    For example, `dot` happily computes an inner product between things which are probably not vectors from the same vector space, e.g. `dot((1, 2, [3, 4]), [[1], (2,), (3, 4)])`.
+    It is also quite inconsistent that `dot` and `norm` accept tuple arguments, even though tuples do not behave as vectors with respect to `+`, `*`, or `zero`.
 
 In summary: there is no formal standardized vector interface in Julia, even though one has broad applicability for writing generic algorithms.
 The interfaces for **containers** (`AbstractArray`) and **iterators** are well defined, but they have become conflated with a hypothetical vector interface.
