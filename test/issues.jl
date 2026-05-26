@@ -9,7 +9,7 @@ using TestExtras
     @test @constinferred add(fill(0.5), fill(0.8), 0.3f0, 0.25im) isa Array{ComplexF64, 0}
 end
 
-# came up here: https://github.com/Jutho/VectorInterface.jl/issues/20
+# came up here: https://github.com/QuantumKitHub/VectorInterface.jl/issues/20
 @testset begin
     @test promote_type(Bool, One) === promote_type(Bool, Zero) ===
         promote_type(One, Bool) === promote_type(Zero, Bool) === Bool
