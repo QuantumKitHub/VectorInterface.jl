@@ -73,13 +73,13 @@ end
     Mooncake.TestUtils.test_rule(rng, add!!, my, mx, α, β; atol, rtol, is_primitive = false)
 end
 
-@testset "inner pullbacks ($T)" for T in eltypes
+@testset "inner pullbacks ($Tx, $Ty)" for Tx in eltypes, Ty in eltypes
     n = 12
-    atol = rtol = n * precision(T)
+    atol = rtol = n * max(precision(Tx), precision(Ty))
 
     # Vector
-    x = randn(T, n)
-    y = randn(T, n)
+    x = randn(Tx, n)
+    y = randn(Ty, n)
     Mooncake.TestUtils.test_rule(rng, inner, x, y; atol, rtol, is_primitive = false)
 
     # MinimalMVec
