@@ -7,6 +7,15 @@ using Enzyme
 using Enzyme.EnzymeCore
 using Enzyme.EnzymeCore: EnzymeRules
 
+function project_add!(C, A, α)
+    TC = Base.promote_op(+, scalartype(A), scalartype(α))
+    return if !(TC <: Real) && scalartype(C) <: Real
+        add!(C, real(add!(zerovector(C, TC), A, α)))
+    else
+        add!(C, A, α)
+    end
+end
+
 """
     project_scalar(x::Number, dx::Number)
 
@@ -104,7 +113,7 @@ function EnzymeRules.reverse(
         α::Annotation{<:Number},
     ) where {RT}
     Aval, αval = cache
-    !isa(A, Const) && !isa(C, Const) && add!(A.dval, C.dval, conj(αval))
+    !isa(A, Const) && !isa(C, Const) && project_add!(A.dval, C.dval, conj(αval))
     Δα = if !isa(α, Const) && !isa(C, Const)
         project_scalar(α.val, inner(Aval, C.dval))
     elseif !isa(α, Const)
@@ -186,7 +195,7 @@ function EnzymeRules.reverse(
     else
         nothing
     end
-    !isa(A, Const) && !isa(C, Const) && add!(A.dval, C.dval, conj(αval))
+    !isa(A, Const) && !isa(C, Const) && project_add!(A.dval, C.dval, conj(αval))
     !isa(C, Const) && scale!(C.dval, conj(βval))
     return (nothing, nothing, Δα, Δβ)
 end
@@ -212,15 +221,6 @@ function EnzymeRules.forward(
         return C.dval
     else
         return nothing
-    end
-end
-
-function project_add!(C, A, α)
-    TC = Base.promote_op(+, scalartype(A), scalartype(α))
-    return if !(TC <: Real) && scalartype(C) <: Real
-        add!(C, real(add!(zerovector(C, TC), A, α)))
-    else
-        add!(C, A, α)
     end
 end
 

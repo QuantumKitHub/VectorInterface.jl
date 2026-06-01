@@ -48,13 +48,13 @@ eltypes = (Float32, Float64, ComplexF64)
     Mooncake.TestUtils.test_rule(rng, scale!!, my, mx, α; atol, rtol, is_primitive = false)
 end
 
-@testset "add pullbacks ($T)" for T in eltypes
+@testset "add ($Tx, $Ty)" for Ty in eltypes, Tx in eltypes
     n = 12
-    atol = rtol = n * precision(T)
-
+    atol = rtol = n * max(precision(Tx), precision(Ty))
+    T = Base.promote_op(+, Tx, Ty)
     # Vector
-    x = randn(T, n)
-    y = randn(T, n)
+    x = randn(Tx, n)
+    y = randn(Ty, n)
     α = randn(T)
     β = randn(T)
     Mooncake.TestUtils.test_rule(rng, add, y, x, α, β; atol, rtol, is_primitive = false)
