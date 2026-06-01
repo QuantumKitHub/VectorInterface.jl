@@ -140,6 +140,15 @@ end
 # inner
 # -----
 
+function project_add!(C, A, α)
+    TC = Base.promote_op(+, scalartype(A), scalartype(α))
+    return if !(TC <: Real) && scalartype(C) <: Real
+        add!(C, real(add!(zerovector(C, TC), A, α)))
+    else
+        add!(C, A, α)
+    end
+end
+
 @is_primitive DefaultCtx Tuple{typeof(inner), AbstractArray, AbstractArray}
 
 function Mooncake.rrule!!(::CoDual{typeof(inner)}, A_ΔA::CoDual, B_ΔB::CoDual)
@@ -151,8 +160,8 @@ function Mooncake.rrule!!(::CoDual{typeof(inner)}, A_ΔA::CoDual, B_ΔB::CoDual)
     s = inner(A, B)
 
     function inner_pullback(Δs)
-        add!(ΔA, B, conj(Δs))
-        add!(ΔB, A, Δs)
+        project_add!(ΔA, B, conj(Δs))
+        project_add!(ΔB, A, Δs)
         return NoRData(), NoRData(), NoRData()
     end
 

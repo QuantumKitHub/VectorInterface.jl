@@ -104,13 +104,13 @@ end
     end
 end
 
-@testset "inner ($T)" for T in eltypes
+@testset "inner ($Tx, $Ty)" for Tx in eltypes, Ty in eltypes
     n = 12
-    atol = rtol = n * precision(T)
+    atol = rtol = n * max(precision(Tx), precision(Ty))
 
     # Vector
-    x = randn(T, n)
-    y = randn(T, n)
+    x = randn(Tx, n)
+    y = randn(Ty, n)
     for RT in (Const, Active)
         test_reverse(inner, RT, (x, Duplicated), (y, Duplicated); atol, rtol)
     end

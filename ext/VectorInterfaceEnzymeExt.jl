@@ -215,6 +215,16 @@ function EnzymeRules.forward(
     end
 end
 
+function project_add!(C, A, α)
+    TC = Base.promote_op(+, scalartype(A), scalartype(α))
+    return if !(TC <: Real) && scalartype(C) <: Real
+        add!(C, real(add!(zerovector(C, TC), A, α)))
+    else
+        add!(C, A, α)
+    end
+end
+
+
 function EnzymeRules.augmented_primal(
         config::EnzymeRules.RevConfigWidth{1},
         func::Const{typeof(inner)},
@@ -241,8 +251,8 @@ function EnzymeRules.reverse(
     )
     ΔS = dret.val
     Aval, Bval = cache
-    !isa(A, Const) && add!(A.dval, Bval, conj(ΔS))
-    !isa(B, Const) && add!(B.dval, Aval, ΔS)
+    !isa(A, Const) && project_add!(A.dval, Bval, conj(ΔS))
+    !isa(B, Const) && project_add!(B.dval, Aval, ΔS)
     return (nothing, nothing)
 end
 
