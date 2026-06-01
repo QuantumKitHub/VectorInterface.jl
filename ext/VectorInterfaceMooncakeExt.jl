@@ -17,6 +17,15 @@ For example, we might compute a complex `dx` but only require the real part.
 project_scalar(x::Number, dx::Number) = oftype(x, dx)
 project_scalar(x::Real, dx::Complex) = project_scalar(x, real(dx))
 
+function project_add!(C, A, α)
+    TC = Base.promote_op(+, scalartype(A), scalartype(α))
+    return if !(TC <: Real) && scalartype(C) <: Real
+        add!(C, real(add!(zerovector(C, TC), A, α)))
+    else
+        add!(C, A, α)
+    end
+end
+
 _needs_tangent(x) = _needs_tangent(typeof(x))
 _needs_tangent(::Type{T}) where {T <: Number} =
     Mooncake.rdata_type(Mooncake.tangent_type(T)) !== NoRData
@@ -72,7 +81,7 @@ function Mooncake.rrule!!(::CoDual{typeof(scale!)}, C_ΔC::CoDual, A_ΔA::CoDual
 
     function scale_pullback(::NoRData)
         copy!(C, C_cache)
-        add!(ΔA, ΔC, conj(α))
+        project_add!(ΔA, ΔC, conj(α))
         Δαr = _needs_tangent(α) ? project_scalar(α, inner(A, ΔC)) : NoRData()
         zerovector!(ΔC)
         return NoRData(), NoRData(), NoRData(), Δαr
@@ -114,7 +123,7 @@ function Mooncake.rrule!!(::CoDual{typeof(add!)}, C_ΔC::CoDual, A_ΔA::CoDual, 
 
         Δαr = _needs_tangent(α) ? project_scalar(α, inner(A, ΔC)) : NoRData()
         Δβr = _needs_tangent(β) ? project_scalar(β, inner(C, ΔC)) : NoRData()
-        add!(ΔA, ΔC, conj(α))
+        project_add!(ΔA, ΔC, conj(α))
         scale!(ΔC, conj(β))
 
         return NoRData(), NoRData(), NoRData(), Δαr, Δβr
@@ -139,15 +148,6 @@ end
 
 # inner
 # -----
-
-function project_add!(C, A, α)
-    TC = Base.promote_op(+, scalartype(A), scalartype(α))
-    return if !(TC <: Real) && scalartype(C) <: Real
-        add!(C, real(add!(zerovector(C, TC), A, α)))
-    else
-        add!(C, A, α)
-    end
-end
 
 @is_primitive DefaultCtx Tuple{typeof(inner), AbstractArray, AbstractArray}
 

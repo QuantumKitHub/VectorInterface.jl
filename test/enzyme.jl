@@ -61,13 +61,14 @@ eltypes = (Float64, ComplexF64)
     end
 end
 
-@testset "add ($T)" for T in eltypes
+@testset "add ($Tx, $Ty)" for Ty in eltypes, Tx in eltypes
     n = 12
-    atol = rtol = n * precision(T)
+    atol = rtol = n * max(precision(Tx), precision(Ty))
+    T = Base.promote_op(+, Tx, Ty)
 
     # Vector
-    x = randn(T, n)
-    y = randn(T, n)
+    x = randn(Tx, n)
+    y = randn(Ty, n)
     α = randn(T)
     β = randn(T)
     for Tα in (Const, Active), Tβ in (Const, Active)
