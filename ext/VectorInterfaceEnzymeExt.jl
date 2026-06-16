@@ -3,27 +3,10 @@ module VectorInterfaceEnzymeExt
 # COV_EXCL_START
 # Enzyme rules aren't reachable by coverage
 using VectorInterface
+using VectorInterface: project_scalar, project_add!
 using Enzyme
 using Enzyme.EnzymeCore
 using Enzyme.EnzymeCore: EnzymeRules
-
-function project_add!(C, A, α)
-    TC = Base.promote_op(+, scalartype(A), scalartype(α))
-    return if !(TC <: Real) && scalartype(C) <: Real
-        add!(C, real(add!(zerovector(C, TC), A, α)))
-    else
-        add!(C, A, α)
-    end
-end
-
-"""
-    project_scalar(x::Number, dx::Number)
-
-Project a computed tangent `dx` onto the correct tangent type for `x`.
-For example, we might compute a complex `dx` but only require the real part.
-"""
-project_scalar(x::Number, dx::Number) = oftype(x, dx)
-project_scalar(x::Real, dx::Complex) = project_scalar(x, real(dx))
 
 function EnzymeRules.augmented_primal(
         config::EnzymeRules.RevConfigWidth{1},
