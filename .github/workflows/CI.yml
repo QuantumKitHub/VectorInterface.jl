@@ -57,7 +57,7 @@ jobs:
           directories: "src,ext"
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         if: matrix.os == 'ubuntu-latest' && matrix.version == '1'
         with:
           files: lcov.info
