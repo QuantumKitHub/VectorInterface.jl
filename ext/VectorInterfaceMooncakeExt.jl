@@ -1,30 +1,11 @@
 module VectorInterfaceMooncakeExt
 
 using VectorInterface
+using VectorInterface: project_scalar, project_add!
 using Mooncake
 using Mooncake: @is_primitive, DefaultCtx,
     NoFData, NoRData, NoTangent,
     CoDual, Dual, arrayify, primal, extract
-
-# Projection
-# ----------
-"""
-    project_scalar(x::Number, dx::Number)
-
-Project a computed tangent `dx` onto the correct tangent type for `x`.
-For example, we might compute a complex `dx` but only require the real part.
-"""
-project_scalar(x::Number, dx::Number) = oftype(x, dx)
-project_scalar(x::Real, dx::Complex) = project_scalar(x, real(dx))
-
-function project_add!(C, A, α)
-    TC = Base.promote_op(+, scalartype(A), scalartype(α))
-    return if !(TC <: Real) && scalartype(C) <: Real
-        add!(C, real(add!(zerovector(C, TC), A, α)))
-    else
-        add!(C, A, α)
-    end
-end
 
 _needs_tangent(x) = _needs_tangent(typeof(x))
 _needs_tangent(::Type{T}) where {T <: Number} =

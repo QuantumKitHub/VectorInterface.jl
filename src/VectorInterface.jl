@@ -48,4 +48,7 @@ include("fallbacks.jl")
 # Minimal vector type for testing
 include("minimalvec.jl")
 
+# Common AD helper methods
+include("ad.jl")
+
 end
