@@ -82,3 +82,8 @@ Base.convert(::Type{T}, ::One) where {T <: Number} = one(T)
 (T::Type{<:Number})(::One) = one(T)
 Base.convert(::Type{T}, ::Zero) where {T <: Number} = zero(T)
 (T::Type{<:Number})(::Zero) = zero(T)
+
+# Utility
+# -------
+Base.isreal(::Zero) = true
+Base.isreal(::One) = true

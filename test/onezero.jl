@@ -19,6 +19,9 @@ const typelist = (
     @test isone(I) == true
     @test isone(Z) == false
     @test iszero(I) == false
+
+    @test isreal(Z)
+    @test isreal(I)
 end
 
 @testset "arithmetic" begin
