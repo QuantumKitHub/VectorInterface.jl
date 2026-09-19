@@ -143,6 +143,13 @@ end
     @test deepcollect(z5) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* β))
     @test all(deepcollect(xcopy) .== deepcollect(x))
 
+    # test strong zero
+    α = randn(ComplexF64)
+    z6 = @constinferred add(y, x, α, Zero())
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* Zero()))
+    z6 = @constinferred add(y, x, α, false)
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* false))
+
     α, β = randn(ComplexF64, 2)
     @test_throws InexactError add!(deepcopy(y), xcopy, α)
     @test_throws InexactError add!(deepcopy(y), xcopy, α, β)
