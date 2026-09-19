@@ -77,7 +77,7 @@ function add!(
     ) where {T <: BlasFloat}
     if β === One()
         LinearAlgebra.axpy!(convert(T, α), x, y)
-    elseif β === Zero()
+    elseif β === Zero() || β === false
         scale!(y, x, convert(T, α))
     else
         LinearAlgebra.axpby!(convert(T, α), x, convert(T, β), y)
