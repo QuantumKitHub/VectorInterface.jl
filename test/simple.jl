@@ -7,6 +7,8 @@ deepcollect(x::Number) = x
 
 x = randn(3, 3, 3)
 y = randn(3, 3, 3)
+nan_y = randn(3, 3, 3)
+nan_y[end] = NaN
 
 @testset "scalartype" begin
     s = @constinferred scalartype(x)
@@ -142,6 +144,26 @@ end
     z5 = @constinferred add!!(deepcopy(y), xcopy, α, β)
     @test deepcollect(z5) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* β))
     @test all(deepcollect(xcopy) .== deepcollect(x))
+
+    # test strong zero
+    α = randn(ComplexF64)
+    z6 = @constinferred add(y, x, α, Zero())
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* Zero()))
+    z6 = @constinferred add(y, x, α, false)
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* false))
+
+    α = randn(scalartype(x))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add!(z6, x, α, Zero())
+    @test !any(isnan, z6)
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(nan_y) .* Zero()))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add!(z6, x, α, false)
+    @test !any(isnan, z6)
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(nan_y) .* false))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add!(z6, x, α, 0.0)
+    @test !any(isnan, z6) # the BLAS call actually also forces strong zero even for 0.0
 
     α, β = randn(ComplexF64, 2)
     @test_throws InexactError add!(deepcopy(y), xcopy, α)
