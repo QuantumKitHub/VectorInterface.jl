@@ -163,7 +163,7 @@ end
     @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(nan_y) .* false))
     z6 = deepcopy(nan_y)
     z6 = @constinferred add!(z6, x, α, 0.0)
-    @test any(isnan, z6)
+    @test !any(isnan, z6) # the BLAS call actually also forces strong zero even for 0.0
 
     α, β = randn(ComplexF64, 2)
     @test_throws InexactError add!(deepcopy(y), xcopy, α)
