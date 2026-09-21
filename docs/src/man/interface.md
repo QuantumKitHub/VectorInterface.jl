@@ -154,9 +154,13 @@ One
 Zero
 ```
 
-`One` and `Zero` are singleton subtypes of `Number` used to represent hard-coded constant coefficients in linear combinations.
+`One` and `Zero` are singleton subtypes of `Real` used to represent hard-coded constant coefficients in linear combinations.
 They allow methods like [`add`](@ref) to dispatch on a unit coefficient at compile time, avoiding unnecessary multiplications.
 They are the default values for the `α` and `β` coefficients in [`add`](@ref), [`add!`](@ref), and [`add!!`](@ref).
+
+Both behave as ordinary real numbers: arithmetic and promotion with any `Number`, `conj`, `real`, `imag`, `abs`, `abs2`, `sign`, the `is*` predicates (`iszero`, `isone`, `isreal`, `isinteger`, `isfinite`, …), comparison against other reals, hashing consistent with `0` and `1`, and `isapprox`.
+Wherever an operation can, it returns `One()` or `Zero()` rather than a plain `1` or `0`, so that `α === One()` fast paths keep firing downstream.
+Deliberately unsupported operations are those with no meaning for a hard-coded coefficient, such as `widen`, `big` and `eps`; dividing by `Zero()` throws a `DivideError` rather than producing `Inf`.
 
 ## Supported types
 
