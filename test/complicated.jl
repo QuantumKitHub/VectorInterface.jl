@@ -15,6 +15,10 @@ y = (
     NamedTuple{(:x, :y)}.(collect(zip(randn(2, 2), rand(2, 2)))),
     (randn(), randn(3), randn(2, 2)'), randn(), (view(randn(4, 4), 1:2, [1, 3, 4]),),
 )
+nan_y = (
+    NamedTuple{(:x, :y)}.(collect(zip(randn(2, 2), rand(2, 2)))),
+    (NaN, randn(3), randn(2, 2)'), randn(), (view(randn(4, 4), 1:2, [1, 3, 4]),),
+)
 
 @testset "scalartype" begin
     s = @constinferred scalartype(x)
@@ -153,6 +157,19 @@ end
     @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* Zero()))
     z6 = @constinferred add(y, x, α, false)
     @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* false))
+
+    α = randn(scalartype(x))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add(z6, x, α, Zero())
+    @test !any(isnan, deepcollect(z6))
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(nan_y) .* Zero()))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add(z6, x, α, false)
+    @test !any(isnan, deepcollect(z6))
+    @test deepcollect(z6) ≈ (muladd.(deepcollect(x), α, deepcollect(nan_y) .* false))
+    z6 = deepcopy(nan_y)
+    z6 = @constinferred add(z6, x, α, 0.0)
+    @test !any(isnan, deepcollect(z6)) # underlying scale! call forces strong zero
 end
 
 @testset "inner" begin
