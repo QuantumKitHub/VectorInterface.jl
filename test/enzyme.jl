@@ -139,3 +139,23 @@ end
         test_forward(inner, RT, (x, Duplicated), (y, Duplicated); atol, rtol)
     end
 end
+
+@testset "inactive arguments under runtime activity ($T)" for T in eltypes
+    n = 5
+    xs = [randn(T, n) for _ in 1:3]
+    ws = [randn(T, n) for _ in 1:3]
+    ws0 = deepcopy(ws)
+    mode = set_runtime_activity(Reverse)
+
+    f(x, w) = real(sum(map(inner, w, x)))
+    dxs = Enzyme.make_zero(xs)
+    autodiff(mode, f, Active, Duplicated(xs, dxs), Const(ws))
+    @test ws == ws0
+    @test all(dxs .≈ ws0)
+
+    g(x, w) = real(sum(map((wi, xi) -> inner(xi, add!(copy(xi), wi, 2, 1)), w, x)))
+    dxs = Enzyme.make_zero(xs)
+    autodiff(mode, g, Active, Duplicated(xs, dxs), Const(ws))
+    @test ws == ws0
+    @test all(dxs .≈ 2 .* xs .+ 2 .* ws0)
+end

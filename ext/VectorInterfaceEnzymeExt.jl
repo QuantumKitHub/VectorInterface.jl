@@ -15,6 +15,21 @@ function project_add!(C, A, α)
 end
 
 """
+    is_inactive(config, x::Annotation) -> Bool
+
+Check whether the annotated argument `x` should be treated as inactive, i.e. whether no tangent should be read from or accumulated into `x.dval`.
+Under runtime activity, Enzyme may pass an argument that is inactive at run time as a `Duplicated` whose shadow aliases the primal (`x.dval === x.val`);
+writing into that shadow would then corrupt the primal.
+See https://enzymead.github.io/Enzyme.jl/dev/faq/#faq-runtime-activity.
+
+!!! note
+    This is a stopgap until an equivalent helper is available in `EnzymeRules`
+    (see https://github.com/EnzymeAD/Enzyme.jl/pull/3597#discussion_r4014313289).
+"""
+@inline is_inactive(config, ::Const) = true
+@inline is_inactive(config, x::Annotation) = EnzymeRules.runtime_activity(config) && x.dval === x.val
+
+"""
     project_scalar(x::Number, dx::Number)
 
 Project a computed tangent `dx` onto the correct tangent type for `x`.
@@ -48,14 +63,14 @@ function EnzymeRules.reverse(
         α::Annotation{<:Number},
     ) where {RT}
     αval, Cval = cache
-    Δα = if !isa(α, Const) && !isa(C, Const)
+    Δα = if !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Cval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
     else
         nothing
     end
-    !isa(C, Const) && scale!(C.dval, conj(αval))
+    !is_inactive(config, C) && scale!(C.dval, conj(αval))
     return (nothing, Δα)
 end
 
@@ -66,9 +81,9 @@ function EnzymeRules.forward(
         C::Annotation,
         α::Annotation{<:Number},
     ) where {RT}
-    if !isa(α, Const) && !isa(C, Const)
+    if !isa(α, Const) && !is_inactive(config, C)
         add!(C.dval, C.val, α.dval, α.val)
-    elseif !isa(C, Const)
+    elseif !is_inactive(config, C)
         scale!(C.dval, α.val)
     end
     scale!(C.val, α.val)
@@ -111,15 +126,15 @@ function EnzymeRules.reverse(
         α::Annotation{<:Number},
     ) where {RT}
     Aval, αval = cache
-    !isa(A, Const) && !isa(C, Const) && project_add!(A.dval, C.dval, conj(αval))
-    Δα = if !isa(α, Const) && !isa(C, Const)
+    !is_inactive(config, A) && !is_inactive(config, C) && project_add!(A.dval, C.dval, conj(αval))
+    Δα = if !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Aval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
     else
         nothing
     end
-    !isa(C, Const) && zerovector!(C.dval)
+    !is_inactive(config, C) && zerovector!(C.dval)
     return (nothing, nothing, Δα)
 end
 
@@ -132,8 +147,8 @@ function EnzymeRules.forward(
         α::Annotation{<:Number},
     ) where {RT}
     scale!(C.val, A.val, α.val)
-    !isa(C, Const) && !isa(A, Const) && scale!(C.dval, A.dval, α.val)
-    !isa(α, Const) && !isa(C, Const) && add!(C.dval, A.val, α.dval, One())
+    !is_inactive(config, C) && !is_inactive(config, A) && scale!(C.dval, A.dval, α.val)
+    !isa(α, Const) && !is_inactive(config, C) && add!(C.dval, A.val, α.dval, One())
     if EnzymeRules.needs_primal(config) &&  EnzymeRules.needs_shadow(config)
         return C
     elseif EnzymeRules.needs_primal(config)
@@ -179,22 +194,22 @@ function EnzymeRules.reverse(
         β::Annotation{<:Number},
     ) where {RT}
     Aval, αval, βval, Cval = cache
-    Δα = if !isa(α, Const) && !isa(C, Const)
+    Δα = if !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Aval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
     else
         nothing
     end
-    Δβ = if !isa(β, Const) && !isa(C, Const)
+    Δβ = if !isa(β, Const) && !is_inactive(config, C)
         project_scalar(β.val, inner(Cval, C.dval))
     elseif !isa(β, Const)
         zero(β.val)
     else
         nothing
     end
-    !isa(A, Const) && !isa(C, Const) && project_add!(A.dval, C.dval, conj(αval))
-    !isa(C, Const) && scale!(C.dval, conj(βval))
+    !is_inactive(config, A) && !is_inactive(config, C) && project_add!(A.dval, C.dval, conj(αval))
+    !is_inactive(config, C) && scale!(C.dval, conj(βval))
     return (nothing, nothing, Δα, Δβ)
 end
 
@@ -207,9 +222,9 @@ function EnzymeRules.forward(
         α::Annotation{<:Number},
         β::Annotation{<:Number},
     ) where {RT}
-    !isa(C, Const) && !isa(A, Const) && add!(C.dval, A.dval, α.val, β.val)
-    !isa(C, Const) && !isa(α, Const) && add!(C.dval, A.val, α.dval, One())
-    !isa(C, Const) && !isa(β, Const) && add!(C.dval, C.val, β.dval, One())
+    !is_inactive(config, C) && !is_inactive(config, A) && add!(C.dval, A.dval, α.val, β.val)
+    !is_inactive(config, C) && !isa(α, Const) && add!(C.dval, A.val, α.dval, One())
+    !is_inactive(config, C) && !isa(β, Const) && add!(C.dval, C.val, β.dval, One())
     add!(C.val, A.val, α.val, β.val)
     if EnzymeRules.needs_primal(config) &&  EnzymeRules.needs_shadow(config)
         return C
@@ -249,8 +264,8 @@ function EnzymeRules.reverse(
     )
     ΔS = dret.val
     Aval, Bval = cache
-    !isa(A, Const) && project_add!(A.dval, Bval, conj(ΔS))
-    !isa(B, Const) && project_add!(B.dval, Aval, ΔS)
+    !is_inactive(config, A) && project_add!(A.dval, Bval, conj(ΔS))
+    !is_inactive(config, B) && project_add!(B.dval, Aval, ΔS)
     return (nothing, nothing)
 end
 
@@ -275,8 +290,8 @@ function EnzymeRules.forward(
     ret = inner(A.val, B.val)
     if EnzymeRules.needs_shadow(config) # only compute this if actually needed
         dret = zero(ret)
-        !isa(A, Const) && (dret += inner(A.dval, B.val))
-        !isa(B, Const) && (dret += inner(A.val, B.dval))
+        !is_inactive(config, A) && (dret += inner(A.dval, B.val))
+        !is_inactive(config, B) && (dret += inner(A.val, B.dval))
     else
         dret = nothing
     end
