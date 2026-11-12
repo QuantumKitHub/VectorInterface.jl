@@ -147,3 +147,30 @@ add!!(y, x, α::Number) = add!!(y, x, α, One())
 Compute the inner product between `x` and `y`.
 """
 function inner end
+
+"""
+    inner!(s, x, y) -> s
+
+Compute the inner product between `x` and `y` and store the result in the mutable scalar
+`s`, e.g. a [`Scalar`](@ref) instance. This will error if `s` is not mutable or if the
+scalar type of the result cannot be converted to `scalartype(s)` without loss.
+
+Also see: [`inner`](@ref) and [`inner!!`](@ref)
+"""
+function inner! end
+
+"""
+    inner!!(s, x, y)
+
+Compute the inner product between `x` and `y`, thereby trying to store the result in the
+scalar `s`. For a plain immutable `Number` `s`, this simply returns `inner(x, y)`. For a
+[`Scalar`](@ref) `s` with compatible scalar type, the result is stored in `s`, so that
+e.g. a device-side scalar is updated without synchronisation. Otherwise, a new `Scalar`
+with the same kind of storage as `s` is returned.
+
+The recommended usage pattern is `s = inner!!(s, x, y)`.
+
+Also see: [`inner`](@ref) and [`inner!`](@ref)
+"""
+function inner!! end
+inner!!(s::Number, x, y) = inner(x, y)

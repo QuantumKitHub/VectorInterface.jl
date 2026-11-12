@@ -162,6 +162,26 @@ Both behave as ordinary real numbers: arithmetic and promotion with any `Number`
 Wherever an operation can, it returns `One()` or `Zero()` rather than a plain `1` or `0`, so that `α === One()` fast paths keep firing downstream.
 Deliberately unsupported operations are those with no meaning for a hard-coded coefficient, such as `widen`, `big` and `eps`; dividing by `Zero()` throws a `DivideError` rather than producing `Inf`.
 
+## Scalars in device memory: `Scalar`
+
+```@docs; canonical=false
+Scalar
+inner!
+inner!!
+```
+
+`Scalar` wraps a scalar value stored in a length-one array (e.g. a zero-dimensional GPU array) or a `Ref`.
+Arithmetic, the vector interface methods on `Scalar` itself, and the use of a `Scalar` as coefficient in [`scale`](@ref) and [`add`](@ref) on arrays of the same device are all implemented by broadcasting, so they never transfer the value back to host memory.
+Only operations that must return a host value, such as comparisons or `s[]`, synchronise.
+
+The in-place inner product writes its result into the storage of the `Scalar`, so a typical orthogonalisation step stays entirely on the device:
+
+```julia
+r = Scalar(similar(x, scalartype(x), ())) # zero-dimensional device array
+r = inner!!(r, q, x)
+x = add!!(x, q, -r)
+```
+
 ## Supported types
 
 Out of the box, `VectorInterface.jl` provides implementations for:
