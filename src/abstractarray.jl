@@ -36,6 +36,8 @@ zerovector!!(x::AbstractArray) = zerovector!(x)
 # scale, scale! & scale!!
 #-------------------------
 # because broadcasting treats zero-dimensional arrays special, use map
+
+scale(x::BLASVector, α::Scalar) = x .* α
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
@@ -65,7 +67,9 @@ end
 
 # add, add! & add!!
 #-------------------
-# because broadcasting treats zero-dimensional arrays special, use map
+function add(y::BLASVector, x::BLASVector, α::Number, β::Number)
+    return @. β * y + α * x
+end
 function add(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     _add(y, x) = add(y, x, α, β)
     return map(_add, y, x)
@@ -116,4 +120,29 @@ function inner(x::AbstractArray, y::AbstractArray)
     T = promote_inner(x, y)
     return mapreduce(inner, +, x, y; init = zero(T))
     # this version is friendlier to GPU arrays with mixed element types
+end
+
+function inner!(result::Scalar{T}, x::BLASVector{T}, y::BLASVector{T}) where {T <: BlasFloat}
+    result[] = LinearAlgebra.dot(x, y)
+    return result
+end
+function inner!(result::Scalar, x::AbstractArray, y::AbstractArray)
+    ax = axes(x)
+    ay = axes(y)
+    ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
+    T = promote_inner(x, y)
+    result[] = mapreduce(inner, +, x, y; init = zero(T))
+    # this version is friendlier to GPU arrays with mixed element types
+    return result
+end
+
+# norm!
+
+function norm!(result::Scalar{T}, x::BLASVector{T}, p::Real = 2) where {T <: BlasFloat}
+    result[] = LinearAlgebra.norm(x, p)
+    return result
+end
+function norm!(result::Scalar, x::AbstractArray, p::Real = 2)
+    result[] = norm(x, p)
+    return result
 end

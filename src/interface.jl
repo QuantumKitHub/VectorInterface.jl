@@ -147,3 +147,20 @@ add!!(y, x, α::Number) = add!!(y, x, α, One())
 Compute the inner product between `x` and `y`.
 """
 function inner end
+
+"""
+    inner!(result, x, y)
+
+Compute the inner product between `x` and `y`
+and store the result in `result`.
+"""
+function inner! end
+
+# Norm
+"""
+    norm!(result, x, p::Real = 2)
+
+Compute the `p`-norm of `x` and
+store the result in `result`.
+"""
+function norm! end
