@@ -27,6 +27,7 @@ Base.:+(α::Number, s::Scalar) = Scalar(s.a .+ α)
 Base.:+(s::Scalar, α::Zero) = s
 Base.:+(α::Zero, s::Scalar) = s
 Base.:+(s1::Scalar, s2::Scalar) = Scalar(s1.a .+ s2.a)
+Base.:(==)(s1::Scalar, s2::Scalar) = all(s1.a .== s2.a)
 
 Base.broadcastable(s::Scalar) = s.a
 
