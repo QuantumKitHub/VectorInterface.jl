@@ -154,6 +154,9 @@ end
         result = Scalar(JLVector(zeros(ComplexF64, 1)))
         inner!(result, scale(x, α), scale(y, β))
         @test result[] ≈ s2
+        # hit the AbstractArray case too
+        inner!(result, adjoint(scale(x, α)), adjoint(scale(y, β)))
+        @test result[] ≈ s2
     end
 end
 
@@ -165,6 +168,9 @@ end
         result = Scalar(JLVector(zeros(scalartype(x), 1)))
         norm!(result, x, p)
         @test result[] ≈ norm(deepcollect(x), p)
+        # hit the AbstractArray case too
+        norm!(result, adjoint(x), p)
+        @test result[] ≈ norm(adjoint(deepcollect(x)), p)
     end
 end
 
