@@ -12,7 +12,6 @@ function Scalar(a::A) where {T <: Number, A <: AbstractVector{T}}
 end
 
 scalartype(::Scalar{T, A}) where {T, A} = T
-scalartype(::Type{Scalar{T, A}}) where {T, A} = T
 
 Base.setindex!(s::Scalar{T, A}, v::T) where {T <: Number, A} = fill!(s.a, v)
 Base.:*(s::Scalar, α::Number) = Scalar(scale(s.a, α))
