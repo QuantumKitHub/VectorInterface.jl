@@ -1,6 +1,8 @@
 # Vector interface implementation for subtypes of `AbstractArray`
 ##################################################################
-const BLASVector{T <: BlasFloat} = Union{DenseArray{T}, StridedVector{T}}
+const BLASVector{T <: BlasFloat} = Union{DenseVector{T}, StridedVector{T}}
+const BLASMatrix{T <: BlasFloat} = Union{DenseMatrix{T}, StridedMatrix{T}}
+const BLASArray{T <: BlasFloat} = Union{BLASVector{T}, BLASMatrix{T}}
 
 # scalartype
 #------------
@@ -37,7 +39,7 @@ zerovector!!(x::AbstractArray) = zerovector!(x)
 #-------------------------
 # because broadcasting treats zero-dimensional arrays special, use map
 
-scale(x::BLASVector, α::Scalar) = x .* α
+scale(x::BLASArray, α::Scalar) = x .* α
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
@@ -67,7 +69,7 @@ end
 
 # add, add! & add!!
 #-------------------
-function add(y::BLASVector, x::BLASVector, α::Number, β::Number)
+function add(y::BLASArray, x::BLASArray, α::Number, β::Number)
     return @. β * y + α * x
 end
 function add(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
@@ -77,7 +79,7 @@ end
 
 # Special case: simple numerical arrays with BLAS-compatible floating point type
 function add!(
-        y::BLASVector{T}, x::BLASVector{T}, α::Number, β::Number
+        y::BLASArray{T}, x::BLASArray{T}, α::Number, β::Number
     ) where {T <: BlasFloat}
     if β === One()
         LinearAlgebra.axpy!(convert(T, α), x, y)
@@ -110,7 +112,7 @@ end
 
 # inner
 #-------
-function inner(x::BLASVector{T}, y::BLASVector{T}) where {T <: BlasFloat}
+function inner(x::BLASArray, y::BLASArray)
     return LinearAlgebra.dot(x, y)
 end
 function inner(x::AbstractArray, y::AbstractArray)
@@ -122,7 +124,7 @@ function inner(x::AbstractArray, y::AbstractArray)
     # this version is friendlier to GPU arrays with mixed element types
 end
 
-function inner!(result::Scalar{T}, x::BLASVector{T}, y::BLASVector{T}) where {T <: BlasFloat}
+function inner!(result::Scalar, x::BLASArray, y::BLASVector)
     result[] = LinearAlgebra.dot(x, y)
     return result
 end
@@ -138,7 +140,7 @@ end
 
 # norm!
 
-function norm!(result::Scalar{T}, x::BLASVector{T}, p::Real = 2) where {T <: BlasFloat}
+function norm!(result::Scalar, x::BLASVector, p::Real = 2)
     result[] = LinearAlgebra.norm(x, p)
     return result
 end
