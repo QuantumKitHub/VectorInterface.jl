@@ -6,9 +6,10 @@ mutable struct Scalar{T, A} <: Number
     Scalar{T, A}(::One) where {T <: Number, A <: AbstractVector{T}} = new(fill!(A(undef, 1), one(T)))
     Scalar{T, A}(::Zero) where {T <: Number, A <: AbstractVector{T}} = new(fill!(A(undef, 1), zero(T)))
 end
-function Scalar(a::A) where {T <: Number, A <: AbstractVector{T}}
+Scalar{T}(a::A) where {T <: Number, A <: AbstractVector{T}} = Scalar{T, A}(a)
+function Scalar(a::A) where {T <: Number, A <: AbstractArray{T}}
     length(a) == 1 || throw(ArgumentError(lazy"underlying array for Scalar must have length 1"))
-    return Scalar{T, A}(a)
+    return Scalar{T}(vec(a))
 end
 
 scalartype(::Scalar{T, A}) where {T, A} = T

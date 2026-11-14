@@ -1,8 +1,6 @@
 # Vector interface implementation for subtypes of `AbstractArray`
 ##################################################################
-const BLASVector{T <: BlasFloat} = Union{DenseVector{T}, StridedVector{T}}
-const BLASMatrix{T <: BlasFloat} = Union{DenseMatrix{T}, StridedMatrix{T}}
-const BLASArray{T <: BlasFloat} = Union{BLASVector{T}, BLASMatrix{T}}
+const BLASVector{T <: BlasFloat} = Union{DenseArray{T}, StridedVector{T}}
 
 # scalartype
 #------------
@@ -39,7 +37,9 @@ zerovector!!(x::AbstractArray) = zerovector!(x)
 #-------------------------
 # because broadcasting treats zero-dimensional arrays special, use map
 
-scale(x::BLASArray, α::Scalar) = x .* α
+scale(x::BLASVector, α::Scalar) = x .* α
+# handle 0-dimensional arrays properly
+scale(x::DenseArray{T, 0}, α::Scalar) where {T} = map(Base.Fix2(scale, α), x)
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
@@ -69,8 +69,13 @@ end
 
 # add, add! & add!!
 #-------------------
-function add(y::BLASArray, x::BLASArray, α::Number, β::Number)
+function add(y::BLASVector, x::BLASVector, α::Number, β::Number)
     return @. β * y + α * x
+end
+# resolve ambiguity and handle 0-dimensional arrays properly
+function add(y::DenseArray{T, 0}, x::BLASVector, α::Number, β::Number) where {T}
+    _add(y, x) = add(y, x, α, β)
+    return map(_add, y, x)
 end
 function add(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     _add(y, x) = add(y, x, α, β)
@@ -79,7 +84,7 @@ end
 
 # Special case: simple numerical arrays with BLAS-compatible floating point type
 function add!(
-        y::BLASArray{T}, x::BLASArray{T}, α::Number, β::Number
+        y::BLASVector{T}, x::BLASVector{T}, α::Number, β::Number
     ) where {T <: BlasFloat}
     if β === One()
         LinearAlgebra.axpy!(convert(T, α), x, y)
@@ -112,7 +117,7 @@ end
 
 # inner
 #-------
-function inner(x::BLASArray, y::BLASArray)
+function inner(x::BLASVector, y::BLASVector)
     return LinearAlgebra.dot(x, y)
 end
 function inner(x::AbstractArray, y::AbstractArray)
@@ -124,7 +129,7 @@ function inner(x::AbstractArray, y::AbstractArray)
     # this version is friendlier to GPU arrays with mixed element types
 end
 
-function inner!(result::Scalar, x::BLASArray, y::BLASVector)
+function inner!(result::Scalar, x::BLASVector, y::BLASVector)
     result[] = LinearAlgebra.dot(x, y)
     return result
 end
