@@ -12,6 +12,9 @@ using VectorInterface
     @test s + 4 == Scalar{Float64, Vector{Float64}}(6.0)
     @test 4 + s == Scalar{Float64, Vector{Float64}}(6.0)
     @test iszero(s * Zero())
+    s2 = Scalar(fill(2.0, 1, 1))
+    @test s2 isa Scalar{Float64, Vector{Float64}}
+    @test s2 == s
 
     sc = Scalar([4.0 - 5.0 * im])
     @test real(sc) == Scalar{ComplexF64, Vector{ComplexF64}}(4.0)
