@@ -36,6 +36,10 @@ zerovector!!(x::AbstractArray) = zerovector!(x)
 # scale, scale! & scale!!
 #-------------------------
 # because broadcasting treats zero-dimensional arrays special, use map
+
+scale(x::BLASVector, α::Scalar) = x .* α
+# handle 0-dimensional arrays properly
+scale(x::DenseArray{T, 0}, α::Scalar) where {T} = map(Base.Fix2(scale, α), x)
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
@@ -65,7 +69,14 @@ end
 
 # add, add! & add!!
 #-------------------
-# because broadcasting treats zero-dimensional arrays special, use map
+function add(y::BLASVector, x::BLASVector, α::Number, β::Number)
+    return @. β * y + α * x
+end
+# resolve ambiguity and handle 0-dimensional arrays properly
+function add(y::DenseArray{T, 0}, x::BLASVector, α::Number, β::Number) where {T}
+    _add(y, x) = add(y, x, α, β)
+    return map(_add, y, x)
+end
 function add(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     _add(y, x) = add(y, x, α, β)
     return map(_add, y, x)
@@ -106,7 +117,7 @@ end
 
 # inner
 #-------
-function inner(x::BLASVector{T}, y::BLASVector{T}) where {T <: BlasFloat}
+function inner(x::BLASVector, y::BLASVector)
     return LinearAlgebra.dot(x, y)
 end
 function inner(x::AbstractArray, y::AbstractArray)
@@ -116,4 +127,29 @@ function inner(x::AbstractArray, y::AbstractArray)
     T = promote_inner(x, y)
     return mapreduce(inner, +, x, y; init = zero(T))
     # this version is friendlier to GPU arrays with mixed element types
+end
+
+function inner!(result::Scalar, x::BLASVector, y::BLASVector)
+    result[] = LinearAlgebra.dot(x, y)
+    return result
+end
+function inner!(result::Scalar, x::AbstractArray, y::AbstractArray)
+    ax = axes(x)
+    ay = axes(y)
+    ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
+    T = promote_inner(x, y)
+    result[] = mapreduce(inner, +, x, y; init = zero(T))
+    # this version is friendlier to GPU arrays with mixed element types
+    return result
+end
+
+# norm!
+
+function norm!(result::Scalar, x::BLASVector, p::Real = 2)
+    result[] = LinearAlgebra.norm(x, p)
+    return result
+end
+function norm!(result::Scalar, x::AbstractArray, p::Real = 2)
+    result[] = norm(x, p)
+    return result
 end

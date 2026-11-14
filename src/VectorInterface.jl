@@ -3,28 +3,29 @@ module VectorInterface
 using LinearAlgebra: LinearAlgebra, norm, BlasFloat
 
 # General interface: export
-export scalartype
+export scalartype, Scalar
 export zerovector, zerovector!, zerovector!!
 export scale, scale!, scale!!
 export add, add!, add!!
-export inner, norm
+export inner, inner!, norm, norm!
 export One, Zero
 
 include("interface.jl")
 
 # Auxiliary type for representing constant 1 or 0 in vector addition / linear combinations
 include("onezero.jl")
+include("scalar.jl")
 
 # Auxiliary methods for determining types
-promote_scale(x, α::Number) = promote_scale(scalartype(x), typeof(α))
+promote_scale(x, α::Number) = promote_scale(scalartype(x), scalartype(α))
 promote_scale(::Type{Tx}, ::Type{Tα}) where {Tx, Tα <: Number} = Base.promote_op(scale, Tx, Tα)
-promote_scale(x, y, α::Number) = promote_scale(scalartype(x), scalartype(y), typeof(α))
+promote_scale(x, y, α::Number) = promote_scale(scalartype(x), scalartype(y), scalartype(α))
 function promote_scale(::Type{Tx}, ::Type{Ty}, ::Type{Tα}) where {Tx, Ty, Tα <: Number}
     return Base.promote_op(scale, Tx, Ty, Tα)
 end
 
 function promote_add(x, y, α::Number = One(), β::Number = One())
-    return promote_add(scalartype(x), scalartype(y), typeof(α), typeof(β))
+    return promote_add(scalartype(x), scalartype(y), scalartype(α), scalartype(β))
 end
 function promote_add(
         ::Type{Ty}, ::Type{Tx},
