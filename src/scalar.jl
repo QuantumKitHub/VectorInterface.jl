@@ -41,6 +41,7 @@ Base.conj(s::Scalar) = Scalar(Base.conj.(s.a))
 Base.rtoldefault(::Type{<:Scalar{T}}) where {T} = Base.rtoldefault(T)
 Base.isapprox(x::Scalar, y::Number; kwargs...) = all(_x -> isapprox(_x, y; kwargs...), x.a)
 Base.convert(::Type{T}, x::Scalar) where {T <: Number} = Scalar(convert.(T, x.a))
+Base.convert(::Type{T}, x::Scalar{T}) where {T <: Number} = x
 
 # split this in two to avoid ambiguity
 (::Type{T})(s::Scalar{T, A}) where {T <: Real, A} = first(collect(s.a))

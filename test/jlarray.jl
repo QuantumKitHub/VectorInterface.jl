@@ -1,4 +1,4 @@
-module StaticSVec
+module JLArrays
 using VectorInterface
 using JLArrays
 using Test
