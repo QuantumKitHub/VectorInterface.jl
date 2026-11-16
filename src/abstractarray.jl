@@ -6,6 +6,10 @@ const BLASVector{T <: BlasFloat} = Union{DenseArray{T}, StridedVector{T}}
 #------------
 scalartype(::Type{A}) where {T, A <: AbstractArray{T}} = scalartype(T) # recursive
 
+_blasscalar(::Type{T}, α::Number) where {T} = convert(T, α)
+_blasscalar(::Type{T}, α::Scalar{T}) where {T} = α
+_blasscalar(::Type{T}, α::Scalar) where {T} = Scalar(convert.(T, α.a))
+
 # zerovector & zerovector!!
 #---------------------------
 # because broadcasting treats zero-dimensional arrays special
@@ -87,11 +91,11 @@ function add!(
         y::BLASVector{T}, x::BLASVector{T}, α::Number, β::Number
     ) where {T <: BlasFloat}
     if β === One()
-        LinearAlgebra.axpy!(convert(T, α), x, y)
+        LinearAlgebra.axpy!(_blasscalar(T, α), x, y)
     elseif β === Zero() || β === false
-        scale!(y, x, convert(T, α))
+        scale!(y, x, _blasscalar(T, α))
     else
-        LinearAlgebra.axpby!(convert(T, α), x, convert(T, β), y)
+        LinearAlgebra.axpby!(_blasscalar(T, α), x, _blasscalar(T, β), y)
     end
     return y
 end
