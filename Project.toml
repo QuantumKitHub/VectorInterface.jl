@@ -23,7 +23,7 @@ projects = ["test"]
 
 [compat]
 ChainRulesCore = "1"
-Enzyme = "0.13.131"
+Enzyme = "0.13.220"
 LinearAlgebra = "1"
 Mooncake = "0.5"
 StaticArrays = "1"
