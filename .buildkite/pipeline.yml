@@ -1,0 +1,26 @@
+env:
+  SECRET_CODECOV_TOKEN: "dFko3k0f7unj6fqtv8JxuW3mmmIjvM6nNmIQhHMGHYAn3xIC4WBvSKKiFdGwlY1BaVseKtOYcqDgjk9qQWW03yCb5B8V6W5fqmO/+E7M53KvN/i23fgG1yt5yCHu7e2s1HOb+Q9kH5kiq40nAJEn2ktMNL4dm9MyeHHzG3SBHT0DHTOydD5szoLcnhpdZfPCdnlSNxQpqkTFOhd5qrzY7TSSSLGv8X604HBcztEFSflELFhppkGiMqGjZ+cxmcrgyv4H7mROaSR/48bbsfpH+8urFRilwcSYW1ybqyKgRg+EQFjMoBQpbF7USoEBoC3BRWKXvh7KY1xqJEWd01FDxw==;U2FsdGVkX19QRC42TBrYQkGifuiMGUHN2L49xEMxNXTfabD9iY1Op5VueB4cPy+ARFBpmMfeW257/0vuAVhaBQ=="
+
+steps:
+  - label: "Julia {{matrix.julia}} -- {{matrix.queue}} / {{matrix.group}}"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "{{matrix.julia}}"
+      - JuliaCI/julia-test#v1:
+          test_args: "{{matrix.group}}"
+      - JuliaCI/julia-coverage#v1:
+          dirs:
+            - src
+            - ext
+    agents:
+      queue: "{{matrix.queue}}"
+    if: build.message !~ /\[skip tests\]/
+    timeout_in_minutes: 10
+    matrix:
+      setup:
+        julia:
+          - "1.10"
+          - "1.13"
+        queue:
+          - "cuda"
+            #- "rocm"
