@@ -14,4 +14,10 @@ end
 args = parse_args(ARGS; custom = ["fast"])
 fast = !isnothing(args.custom["fast"])
 
+# On Buildkite (GPU CI runner): only run CUDA and AMDGPU tests
+if get(ENV, "BUILDKITE", "false") == "true"
+    f(str) = startswith(first(str), "cuda") || startswith(first(str), "amd")
+    filter!(f, testsuite)
+end
+
 ParallelTestRunner.runtests(VectorInterface, args; testsuite)
