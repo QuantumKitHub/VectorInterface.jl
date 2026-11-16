@@ -3,14 +3,17 @@ mutable struct Scalar{T, A} <: Number
     Scalar{T, A}(a::A) where {T <: Number, A <: AbstractVector{T}} = new(a)
     Scalar{T, A}(s::T) where {T <: Number, A <: AbstractVector{T}} = Scalar{T, A}(fill!(A(undef, 1), s))
     Scalar{T, A}(s::T2) where {T <: Number, T2 <: Number, A <: AbstractVector{T}} = Scalar{T, A}(fill!(A(undef, 1), convert(T, s)))
+    Scalar{T, A}(s::Scalar{T, A}) where {T <: Number, A <: AbstractVector{T}} = s
     Scalar{T, A}(::One) where {T <: Number, A <: AbstractVector{T}} = new(fill!(A(undef, 1), one(T)))
     Scalar{T, A}(::Zero) where {T <: Number, A <: AbstractVector{T}} = new(fill!(A(undef, 1), zero(T)))
 end
 Scalar{T}(a::A) where {T <: Number, A <: AbstractVector{T}} = Scalar{T, A}(a)
+Scalar{T}(s::Scalar{T, A}) where {T <: Number, A <: AbstractVector{T}} = s
 function Scalar(a::A) where {T <: Number, A <: AbstractArray{T}}
     length(a) == 1 || throw(ArgumentError(lazy"underlying array for Scalar must have length 1"))
     return Scalar{T}(vec(a))
 end
+Scalar(s::Scalar{T, A}) where {T <: Number, A <: AbstractVector{T}} = s
 
 scalartype(::Scalar{T, A}) where {T, A} = T
 
@@ -38,3 +41,7 @@ Base.conj(s::Scalar) = Scalar(Base.conj.(s.a))
 Base.rtoldefault(::Type{<:Scalar{T}}) where {T} = Base.rtoldefault(T)
 Base.isapprox(x::Scalar, y::Number; kwargs...) = all(_x -> isapprox(_x, y; kwargs...), x.a)
 Base.convert(::Type{T}, x::Scalar) where {T <: Number} = Scalar(convert.(T, x.a))
+
+# split this in two to avoid ambiguity
+(::Type{T})(s::Scalar{T, A}) where {T <: Real, A} = first(collect(s.a))
+(::Type{T})(s::Scalar{T, A}) where {T <: Complex, A} = first(collect(s.a))
