@@ -1,6 +1,6 @@
 module CuVec
 using VectorInterface
-using CUDA 
+using CUDA
 using Test
 using TestExtras
 
