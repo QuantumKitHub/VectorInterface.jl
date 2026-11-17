@@ -39,7 +39,7 @@ Base.:-(s::Scalar) = Scalar(-1 .* s.a)
 Base.:(==)(s1::Scalar, s2::Scalar) = all(s1.a .== s2.a)
 Base.inv(s::Scalar) = Scalar(inv.(s.a))
 Base.abs(s::Scalar) = Scalar(abs.(s.a))
-Base.isless(s::Scalar{T}, v::T) where {T} = all(Base.Fix2(isless, v), s.a)
+Base.isless(s::Scalar{T}, v::T) where {T <: Number} = all(Base.Fix2(isless, v), s.a)
 Base.copyto!(s::Scalar, v) = (s.a .= v; return s)
 
 Base.broadcastable(s::Scalar) = s.a
@@ -50,8 +50,7 @@ Base.imag(s::Scalar) = Scalar(Base.imag.(s.a))
 Base.conj(s::Scalar) = Scalar(Base.conj.(s.a))
 Base.rtoldefault(::Type{<:Scalar{T}}) where {T} = Base.rtoldefault(T)
 Base.isapprox(x::Scalar, y::Number; kwargs...) = all(_x -> isapprox(_x, y; kwargs...), x.a)
-Base.convert(::Type{T}, s::Scalar) where {T <: Number} = convert(T, first(collect(s.a)))::T
 
 # split this in two to avoid ambiguity
-(::Type{T})(s::Scalar{T, A}) where {T <: Real, A} = first(collect(s.a))
-(::Type{T})(s::Scalar{T, A}) where {T <: Complex, A} = first(collect(s.a))
+(::Type{T})(s::Scalar) where {T <: Real} = T(first(collect(s.a)))
+(::Type{T})(s::Scalar) where {T <: Complex} = T(first(collect(s.a)))

@@ -65,7 +65,7 @@ end
     β = randn(T)
     Mooncake.TestUtils.test_rule(rng, add, y, x, α, β; atol, rtol, is_primitive = false)
     Mooncake.TestUtils.test_rule(rng, add!!, y, x, α, β; atol, rtol, is_primitive = false)
-    # Scalar 
+    # Scalar
     α = Scalar([randn(T)])
     β = Scalar([randn(T)])
     Mooncake.TestUtils.test_rule(rng, add, y, x, α, β; atol, rtol, is_primitive = false)
