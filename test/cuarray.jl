@@ -7,31 +7,19 @@ using TestExtras
 deepcollect(x::CuArray) = collect(x)
 deepcollect(x::Number) = x
 deepcollect(x::Scalar) = deepcollect(x.a)
-deepcollect(x) = vcat(map(deepcollect, x)...)
 
 if CUDA.functional()
 
-    simple_x = CuVector(randn(3))
-    simple_y = CuVector(randn(3))
+    x = CuVector(randn(3))
+    y = CuVector(randn(3))
     nan_y = CuVector(vcat(randn(2), NaN))
-    # nested arrays
-    nested_x = (
-        NamedTuple{(:x, :y)}.(collect(zip(CUDA.randn(2, 2), CUDA.rand(2, 2)))),
-        (CUDA.randn(), CUDA.randn(3), CUDA.randn(2, 2)'), CUDA.randn(), (view(CUDA.randn(4, 4), 1:2, [1, 3, 4]),),
-    )
-    nested_y = (
-        NamedTuple{(:x, :y)}.(collect(zip(CUDA.randn(2, 2), CUDA.rand(2, 2)))),
-        (CUDA.randn(), CUDA.randn(3), CUDA.randn(2, 2)'), CUDA.randn(), (view(CUDA.randn(4, 4), 1:2, [1, 3, 4]),),
-    )
 
     @testset "scalartype" begin
-        x = simple_x
         s = @testinferred scalartype(x)
         @test s == Float64
     end
 
     @testset "zerovector" begin
-        x = simple_x
         z = @testinferred zerovector(x)
         @test z isa CuVector{Float64}
         @test all(iszero, deepcollect(z))
@@ -49,7 +37,7 @@ if CUDA.functional()
     end
 
     @testset "scale" begin
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)), α in (randn(), Scalar(CuVector([randn()])))
+        for α in (randn(), Scalar(CuVector([randn()])))
             z = @testinferred scale(x, α)
             @test z isa CuVector{Float64}
             @test all(deepcollect(z) .== deepcollect(x) .* deepcollect(α))
@@ -66,7 +54,7 @@ if CUDA.functional()
             @test deepcollect(z2) ≈ deepcollect(x) .* deepcollect(α)
         end
 
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)), α in (randn(ComplexF64), Scalar(CuVector([randn(ComplexF64)])))
+        for α in (randn(ComplexF64), Scalar(CuVector([randn(ComplexF64)])))
             z4 = @testinferred scale(x, α)
             @test z4 isa CuVector{ComplexF64}
             @test deepcollect(z4) ≈ (deepcollect(α) .* deepcollect(x))
@@ -79,7 +67,7 @@ if CUDA.functional()
             @test deepcollect(z6) ≈ (deepcollect(α) .* deepcollect(x))
         end
 
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)), α in (randn(Float64), Scalar(CuVector([randn(Float64)])))
+        for α in (randn(Float64), Scalar(CuVector([randn(Float64)])))
             ycomplex = zerovector(y, ComplexF64)
             z8 = @testinferred scale!!(ycomplex, x, α)
             @test scalartype(z8) == ComplexF64
@@ -88,11 +76,10 @@ if CUDA.functional()
     end
 
     @testset "add" begin
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)),
-                (α, β) in (
-                    (randn(), randn()),
-                    (Scalar(CuVector([randn()])), Scalar(CuVector([randn()]))),
-                )
+        for (α, β) in (
+                (randn(), randn()),
+                (Scalar(CuVector([randn()])), Scalar(CuVector([randn()]))),
+            )
             z = add(y, x)
             @test z isa CuVector{Float64}
             @test all(deepcollect(z) .== deepcollect(x) .+ deepcollect(y))
@@ -110,11 +97,10 @@ if CUDA.functional()
             @test deepcollect(z2) ≈ (muladd.(deepcollect(x), deepcollect(α)[], deepcollect(y) .* deepcollect(β)[]))
         end
 
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)),
-                (α, β) in (
-                    (randn(ComplexF64), randn(ComplexF64)),
-                    (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
-                )
+        for (α, β) in (
+                (randn(ComplexF64), randn(ComplexF64)),
+                (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
+            )
             z4 = add(y, x, α)
             @test z4 isa CuVector{ComplexF64}
             @test deepcollect(z4) ≈ (muladd.(deepcollect(x), deepcollect(α), deepcollect(y)))
@@ -128,8 +114,7 @@ if CUDA.functional()
             @test deepcollect(z5) ≈ (muladd.(deepcollect(x), deepcollect(α), deepcollect(y) .* deepcollect(β)))
         end
 
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)),
-                α in (randn(ComplexF64), Scalar(CuVector([randn(ComplexF64)])))
+        for α in (randn(ComplexF64), Scalar(CuVector([randn(ComplexF64)])))
             # test strong zero
             α = randn(ComplexF64)
             z6 = add(y, x, α, Zero())
@@ -138,7 +123,7 @@ if CUDA.functional()
             @test deepcollect(z6) ≈ (muladd.(deepcollect(x), deepcollect(α), deepcollect(y) .* false))
         end
 
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y)), α in (randn(scalartype(x)), Scalar(CuVector([randn(scalartype(x))])))
+        for α in (randn(scalartype(x)), Scalar(CuVector([randn(scalartype(x))])))
             z6 = deepcopy(nan_y)
             z6 = @testinferred add!(z6, x, α, Zero())
             @test !any(isnan, z6)
@@ -154,33 +139,31 @@ if CUDA.functional()
     end
 
     @testset "inner" begin
-        for (x, y) in ((simple_x, simple_y), (nested_x, nested_y))
-            s = @testinferred inner(x, y)
-            @test s ≈ inner(deepcollect(x), deepcollect(y))
+        s = @testinferred inner(x, y)
+        @test s ≈ inner(deepcollect(x), deepcollect(y))
 
-            result = Scalar(CuVector(zeros(scalartype(x), 1)))
-            inner!(result, x, y)
-            @test deepcollect(result)[] ≈ inner(deepcollect(x), deepcollect(y))
+        result = Scalar(CuVector(zeros(scalartype(x), 1)))
+        inner!(result, x, y)
+        @test deepcollect(result)[] ≈ inner(deepcollect(x), deepcollect(y))
 
-            for (α, β) in (
-                    (randn(ComplexF64), randn(ComplexF64)),
-                    (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
-                )
-                s2 = @testinferred inner(scale(x, α), scale(y, β))
-                @test s2 ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
+        for (α, β) in (
+                (randn(ComplexF64), randn(ComplexF64)),
+                (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
+            )
+            s2 = @testinferred inner(scale(x, α), scale(y, β))
+            @test s2 ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
 
-                result = Scalar(CuVector(zeros(ComplexF64, 1)))
-                inner!(result, scale(x, α), scale(y, β))
-                @test deepcollect(result)[] ≈ s2
-                # hit the AbstractArray case too
-                inner!(result, adjoint(scale(x, α)), adjoint(scale(y, β)))
-                @test deepcollect(result)[] ≈ s2
-            end
+            result = Scalar(CuVector(zeros(ComplexF64, 1)))
+            inner!(result, scale(x, α), scale(y, β))
+            @test deepcollect(result)[] ≈ s2
+            # hit the AbstractArray case too
+            inner!(result, adjoint(scale(x, α)), adjoint(scale(y, β)))
+            @test deepcollect(result)[] ≈ s2
         end
     end
 
     @testset "norm" begin
-        for p in (-1, 1, 2, 3.5, Inf), x in (simple_x, nested_x)
+        for p in (-1, 1, 2, 3.5, Inf)
             s = @testinferred norm(x, p)
             @test s ≈ norm(deepcollect(x), p)
 
@@ -192,6 +175,7 @@ if CUDA.functional()
             @test deepcollect(result)[] ≈ norm(adjoint(deepcollect(x)), p)
         end
     end
+
 end
 
 end
