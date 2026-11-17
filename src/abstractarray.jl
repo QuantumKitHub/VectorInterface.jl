@@ -122,15 +122,15 @@ end
 # inner
 #-------
 function inner(x::BLASVector, y::BLASVector)
-    return LinearAlgebra.dot(x, y)
+    return LinearAlgebra.dot(vec(x), vec(y))
 end
 function inner(x::AbstractArray, y::AbstractArray)
     ax = axes(x)
     ay = axes(y)
     ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
     T = promote_inner(x, y)
-    return mapreduce(inner, +, x, y; init = zero(T))
     # this version is friendlier to GPU arrays with mixed element types
+    return mapreduce(inner, +, x, y; init = zero(T))
 end
 
 function inner!(result::Scalar, x::BLASVector, y::BLASVector)
