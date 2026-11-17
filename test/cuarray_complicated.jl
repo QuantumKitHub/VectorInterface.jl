@@ -189,7 +189,8 @@ if CUDA.functional()
             # LinearAlgebra.norm on a nested container takes the p-norm of the
             # 2-norms of its elements, not the p-norm of the flattened vector
             ref = norm(map(xi -> norm(deepcollect(xi)), x), p)
-            s = @testinferred norm(x, p)
+            # LinearAlgebra.norm on heterogeneous tuples only infers from Julia 1.12 on
+            s = VERSION ≥ v"1.12" ? (@testinferred norm(x, p)) : norm(x, p)
             @test s ≈ ref
 
             result = Scalar(CuVector(zeros(scalartype(x), 1)))
