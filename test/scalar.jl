@@ -11,6 +11,12 @@ using VectorInterface
     @test s + 2s == Scalar{Float64, Vector{Float64}}(6.0)
     @test s + 4 == Scalar{Float64, Vector{Float64}}(6.0)
     @test 4 + s == Scalar{Float64, Vector{Float64}}(6.0)
+    @test s - 2s == Scalar{Float64, Vector{Float64}}(-2.0)
+    @test s - 4 == Scalar{Float64, Vector{Float64}}(-2.0)
+    @test s - Zero() == s
+    @test 4 - s == Scalar{Float64, Vector{Float64}}(2.0)
+    @test -s == Scalar{Float64, Vector{Float64}}(-2.0)
+    @test inv(s) == Scalar{Float64, Vector{Float64}}(0.5)
     @test iszero(s * Zero())
     s2 = Scalar(fill(2.0, 1, 1))
     @test s2 isa Scalar{Float64, Vector{Float64}}
