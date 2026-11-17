@@ -38,6 +38,9 @@ Base.:-(s1::Scalar, s2::Scalar) = Scalar(s1.a .- s2.a)
 Base.:-(s::Scalar) = Scalar(-1 .* s.a)
 Base.:(==)(s1::Scalar, s2::Scalar) = all(s1.a .== s2.a)
 Base.inv(s::Scalar) = Scalar(inv.(s.a))
+Base.abs(s::Scalar) = Scalar(abs.(s.a))
+Base.isless(s::Scalar{T}, v::T) where {T} = all(Base.Fix2(isless, v), s.a)
+Base.copyto!(s::Scalar, v) = (s.a .= v; return s)
 
 Base.broadcastable(s::Scalar) = s.a
 
