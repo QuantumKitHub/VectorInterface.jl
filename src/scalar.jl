@@ -50,6 +50,7 @@ Base.imag(s::Scalar) = Scalar(Base.imag.(s.a))
 Base.conj(s::Scalar) = Scalar(Base.conj.(s.a))
 Base.rtoldefault(::Type{<:Scalar{T}}) where {T} = Base.rtoldefault(T)
 Base.isapprox(x::Scalar, y::Number; kwargs...) = all(_x -> isapprox(_x, y; kwargs...), x.a)
+Base.isapprox(x::Scalar, y::Scalar; kwargs...) = all(splat((a, b) -> isapprox(a, b; kwargs...)), zip(x.a, y.a))
 
 # split this in two to avoid ambiguity
 (::Type{T})(s::Scalar) where {T <: Real} = T(first(collect(s.a)))
