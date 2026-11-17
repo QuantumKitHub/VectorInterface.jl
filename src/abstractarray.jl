@@ -10,6 +10,11 @@ _blasscalar(::Type{T}, α::Number) where {T} = convert(T, α)
 _blasscalar(::Type{T}, α::Scalar{T}) where {T} = α
 _blasscalar(::Type{T}, α::Scalar) where {T} = Scalar(convert.(T, α.a))
 
+# When broadcasting over an array of nested vectors, scalars (in particular a `Scalar`,
+# whose `broadcastable` is its underlying array) must be passed whole to each element.
+_bc(::AbstractArray{<:Number}, α) = α
+_bc(::AbstractArray, α) = Ref(α)
+
 # zerovector & zerovector!!
 #---------------------------
 # because broadcasting treats zero-dimensional arrays special
@@ -47,11 +52,11 @@ scale(x::DenseArray{T, 0}, α::Scalar) where {T} = map(Base.Fix2(scale, α), x)
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
-    x .= scale!!.(x, α)
+    x .= scale!!.(x, _bc(x, α))
     return x
 end
 function scale!(y::AbstractArray, x::AbstractArray, α::Number)
-    y .= scale!!.(y, x, α)
+    y .= scale!!.(y, x, _bc(y, α))
     return y
 end
 
@@ -60,14 +65,14 @@ function scale!!(x::AbstractArray, α::Number)
     if promote_scale(x, α) <: scalartype(x)
         return scale!(x, α)
     else
-        return scale!!.(x, α)
+        return scale!!.(x, _bc(x, α))
     end
 end
 function scale!!(y::AbstractArray, x::AbstractArray, α::Number)
     if promote_scale(y, x, α) <: scalartype(y)
         return scale!(y, x, α)
     else
-        return scale!!.(y, x, α)
+        return scale!!.(y, x, _bc(y, α))
     end
 end
 
@@ -104,7 +109,7 @@ function add!(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     ax = axes(x)
     ay = axes(y)
     ax == ay || throw(DimensionMismatch("Output axes $ay differ from input axes $ax"))
-    y .= add!!.(y, x, α, β) # might error
+    y .= add!!.(y, x, _bc(y, α), _bc(y, β)) # might error
     return y
 end
 
@@ -115,7 +120,7 @@ function add!!(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
         ax = axes(x)
         ay = axes(y)
         ax == ay || throw(DimensionMismatch("Output axes $ay differ from input axes $ax"))
-        return add!!.(y, x, α, β)
+        return add!!.(y, x, _bc(y, α), _bc(y, β))
     end
 end
 
@@ -137,7 +142,7 @@ function inner!(result::Scalar, x::BLASVector, y::BLASVector)
     result[] = LinearAlgebra.dot(x, y)
     return result
 end
-function inner!(result::Scalar, x::AbstractArray, y::AbstractArray)
+function inner!(result::Scalar, x, y)
     ax = axes(x)
     ay = axes(y)
     ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
@@ -148,12 +153,7 @@ function inner!(result::Scalar, x::AbstractArray, y::AbstractArray)
 end
 
 # norm!
-
-function norm!(result::Scalar, x::BLASVector, p::Real = 2)
+function norm!(result::Scalar, x, p::Real = 2)
     result[] = LinearAlgebra.norm(x, p)
-    return result
-end
-function norm!(result::Scalar, x::AbstractArray, p::Real = 2)
-    result[] = norm(x, p)
     return result
 end

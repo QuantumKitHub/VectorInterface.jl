@@ -175,7 +175,6 @@ if CUDA.functional()
             @test deepcollect(result)[] ≈ norm(adjoint(deepcollect(x)), p)
         end
     end
-
 end
 
 end
