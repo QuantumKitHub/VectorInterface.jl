@@ -32,8 +32,14 @@ eltypes = (Float32, Float64, ComplexF64)
     Mooncake.TestUtils.test_rule(rng, scale, x, α; atol, rtol, is_primitive = false)
     Mooncake.TestUtils.test_rule(rng, scale!!, x, α; atol, rtol, is_primitive = false)
     Mooncake.TestUtils.test_rule(rng, scale!!, y, x, α; atol, rtol, is_primitive = false)
+    # Scalar
+    α = Scalar([randn(T)])
+    Mooncake.TestUtils.test_rule(rng, scale, x, α; atol, rtol, is_primitive = false)
+    Mooncake.TestUtils.test_rule(rng, scale!!, x, α; atol, rtol, is_primitive = false)
+    Mooncake.TestUtils.test_rule(rng, scale!!, y, x, α; atol, rtol, is_primitive = false)
 
     # MinimalMVec
+    α = randn(T)
     mx = MinimalMVec(x)
     my = MinimalMVec(y)
     Mooncake.TestUtils.test_rule(rng, scale, mx, α; atol, rtol, is_primitive = false)
@@ -59,8 +65,15 @@ end
     β = randn(T)
     Mooncake.TestUtils.test_rule(rng, add, y, x, α, β; atol, rtol, is_primitive = false)
     Mooncake.TestUtils.test_rule(rng, add!!, y, x, α, β; atol, rtol, is_primitive = false)
+    # Scalar 
+    α = Scalar([randn(T)])
+    β = Scalar([randn(T)])
+    Mooncake.TestUtils.test_rule(rng, add, y, x, α, β; atol, rtol, is_primitive = false)
+    Mooncake.TestUtils.test_rule(rng, add!!, y, x, α, β; atol, rtol, is_primitive = false)
 
     # MinimalMVec
+    α = randn(T)
+    β = randn(T)
     mx = MinimalMVec(x)
     my = MinimalMVec(y)
     Mooncake.TestUtils.test_rule(rng, add, my, mx, α, β; atol, rtol, is_primitive = false)
@@ -81,6 +94,9 @@ end
     x = randn(Tx, n)
     y = randn(Ty, n)
     Mooncake.TestUtils.test_rule(rng, inner, x, y; atol, rtol, is_primitive = false)
+    # Scalar
+    result = Scalar([zero(VectorInterface.promote_inner(Tx, Ty))])
+    Mooncake.TestUtils.test_rule(rng, inner!, result, x, y; atol, rtol, is_primitive = false)
 
     # MinimalMVec
     mx = MinimalMVec(x)
