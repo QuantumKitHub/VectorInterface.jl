@@ -140,39 +140,21 @@ if CUDA.functional()
 
     @testset "inner" begin
         s = @testinferred inner(x, y)
-        @test s ≈ inner(deepcollect(x), deepcollect(y))
-
-        result = Scalar(CuVector(zeros(scalartype(x), 1)))
-        inner!(result, x, y)
-        @test deepcollect(result)[] ≈ inner(deepcollect(x), deepcollect(y))
+        @test convert(eltype(x), s) ≈ inner(deepcollect(x), deepcollect(y))
 
         for (α, β) in (
                 (randn(ComplexF64), randn(ComplexF64)),
                 (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
             )
             s2 = @testinferred inner(scale(x, α), scale(y, β))
-            @test s2 ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
-
-            result = Scalar(CuVector(zeros(ComplexF64, 1)))
-            inner!(result, scale(x, α), scale(y, β))
-            @test deepcollect(result)[] ≈ s2
-            # hit the AbstractArray case too
-            inner!(result, adjoint(scale(x, α)), adjoint(scale(y, β)))
-            @test deepcollect(result)[] ≈ s2
+            @test convert(Float64, s2) ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
         end
     end
 
     @testset "norm" begin
         for p in (-1, 1, 2, 3.5, Inf)
             s = @testinferred norm(x, p)
-            @test s ≈ norm(deepcollect(x), p)
-
-            result = Scalar(CuVector(zeros(scalartype(x), 1)))
-            norm!(result, x, p)
-            @test deepcollect(result)[] ≈ norm(deepcollect(x), p)
-            # hit the AbstractArray case too
-            norm!(result, adjoint(x), p)
-            @test deepcollect(result)[] ≈ norm(adjoint(deepcollect(x)), p)
+            @test convert(real(eltype(x)), s) ≈ norm(deepcollect(x), p)
         end
     end
 end

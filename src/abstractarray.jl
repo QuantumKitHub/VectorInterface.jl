@@ -137,8 +137,3 @@ function inner(x::AbstractArray, y::AbstractArray)
     # this version is friendlier to GPU arrays with mixed element types
     return mapreduce(inner, +, x, y; init = zero(T))
 end
-
-function inner!(result::Scalar, x::BLASVector, y::BLASVector)
-    result[] = LinearAlgebra.dot(x, y)
-    return result
-end

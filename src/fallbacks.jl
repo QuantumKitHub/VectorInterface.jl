@@ -205,19 +205,3 @@ function inner(x, y)
         throw(ArgumentError(_error_message(inner, T)))
     end
 end
-
-function inner!(result::Scalar, x, y)
-    ax = axes(x)
-    ay = axes(y)
-    ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
-    T = promote_inner(x, y)
-    result[] = mapreduce(inner, +, x, y; init = zero(T))
-    # this version is friendlier to GPU arrays with mixed element types
-    return result
-end
-
-# norm!
-function norm!(result::Scalar, x, p::Real = 2)
-    result[] = LinearAlgebra.norm(x, p)
-    return result
-end

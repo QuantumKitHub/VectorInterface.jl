@@ -7,7 +7,7 @@ export scalartype, Scalar
 export zerovector, zerovector!, zerovector!!
 export scale, scale!, scale!!
 export add, add!, add!!
-export inner, inner!, norm, norm!
+export inner, norm
 export One, Zero
 
 include("interface.jl")

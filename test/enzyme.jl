@@ -144,14 +144,6 @@ end
     for RT in (Const, Duplicated)
         test_forward(inner, RT, (x, Duplicated), (y, Duplicated); atol, rtol)
     end
-    # Scalar
-    result = Scalar([zero(VectorInterface.promote_inner(Tx, Ty))])
-    for RT in (Const, Duplicated)
-        test_reverse(inner!, RT, (result, RT), (x, Duplicated), (y, Duplicated); atol, rtol)
-    end
-    for RT in (Const, Duplicated)
-        test_forward(inner!, RT, (result, RT), (x, Duplicated), (y, Duplicated); atol, rtol)
-    end
 
     # MinimalMVec
     mx = MinimalMVec(x)

@@ -165,22 +165,14 @@ if CUDA.functional()
 
     @testset "inner" begin
         s = @constinferred inner(x, y)
-        @test s ≈ inner(deepcollect(x), deepcollect(y))
-
-        result = Scalar(CuVector(zeros(scalartype(x), 1)))
-        inner!(result, x, y)
-        @test deepcollect(result)[] ≈ inner(deepcollect(x), deepcollect(y))
+        @test convert(Float64, s) ≈ inner(deepcollect(x), deepcollect(y))
 
         for (α, β) in (
                 (randn(ComplexF64), randn(ComplexF64)),
                 (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
             )
             s2 = @testinferred inner(scale(x, α), scale(y, β))
-            @test s2 ≈ inner(deepcollect(α)[] .* deepcollect(x), deepcollect(β)[] .* deepcollect(y))
-
-            result = Scalar(CuVector(zeros(ComplexF64, 1)))
-            inner!(result, scale(x, α), scale(y, β))
-            @test deepcollect(result)[] ≈ s2
+            @test convert(Float64, s2) ≈ inner(deepcollect(α)[] .* deepcollect(x), deepcollect(β)[] .* deepcollect(y))
         end
     end
 
@@ -191,11 +183,7 @@ if CUDA.functional()
             ref = norm(map(xi -> norm(deepcollect(xi)), x), p)
             # LinearAlgebra.norm on heterogeneous tuples only infers from Julia 1.12 on
             s = VERSION ≥ v"1.12" ? (@testinferred norm(x, p)) : norm(x, p)
-            @test s ≈ ref
-
-            result = Scalar(CuVector(zeros(scalartype(x), 1)))
-            norm!(result, x, p)
-            @test deepcollect(result)[] ≈ ref
+            @test convert(Float64, s) ≈ ref
         end
     end
 end

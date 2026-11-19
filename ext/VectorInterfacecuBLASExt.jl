@@ -3,21 +3,26 @@ module VectorInterfacecuBLASExt
 using VectorInterface, cuBLAS, LinearAlgebra
 using cuBLAS.CUDACore: CuVector
 
-function VectorInterface.inner!(result::Scalar{T, <:CuVector{T}}, x::VectorInterface.BLASVector, y::VectorInterface.BLASVector) where {T <: Real}
+const cuBLASVector{T <: BlasFloat} = Union{CuArray{T}, CuStridedVector{T}}
+
+function VectorInterface.inner(x::VectorInterface.cuBLASVector{T}, y::VectorInterface.cuBLASVector{T}) where {T <: Real}
     n = length(x)
     n == length(y) || throw(DimensionMismatch("dot product arguments have lengths $(length(x)) and $(length(y))"))
+    result = Scalar(CuVector{T}(undef, 1))
     cuBLAS.dot(n, x, y, result)
     return result
 end
 
-function VectorInterface.inner!(result::Scalar{T, <:CuVector{T}}, x::VectorInterface.BLASVector, y::VectorInterface.BLASVector) where {T <: Complex}
+function VectorInterface.inner(x::VectorInterface.cuBLASVector{T}, y::VectorInterface.cuBLASVector{T}) where {T <: Complex}
     n = length(x)
     n == length(y) || throw(DimensionMismatch("dot product arguments have lengths $(length(x)) and $(length(y))"))
+    result = Scalar(CuVector{real(T)}(undef, 1))
     cuBLAS.dotc(n, x, y, result)
     return result
 end
 
-function VectorInterface.norm!(result::Scalar{T, <:CuVector{T}}, x::VectorInterface.BLASVector, p::Real = 2) where {T}
+function VectorInterface.norm(x::VectorInterface.cuBLASVector{T}, p::Real = 2) where {T}
+    result = Scalar(CuVector{real(T)}(undef, 1))
     if p == 2
         cuBLAS.nrm2(length(x), x, result)
     else

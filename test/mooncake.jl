@@ -94,9 +94,6 @@ end
     x = randn(Tx, n)
     y = randn(Ty, n)
     Mooncake.TestUtils.test_rule(rng, inner, x, y; atol, rtol, is_primitive = false)
-    # Scalar
-    result = Scalar([zero(VectorInterface.promote_inner(Tx, Ty))])
-    Mooncake.TestUtils.test_rule(rng, inner!, result, x, y; atol, rtol, is_primitive = false)
 
     # MinimalMVec
     mx = MinimalMVec(x)
