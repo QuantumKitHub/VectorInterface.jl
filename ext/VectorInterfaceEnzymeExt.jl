@@ -222,9 +222,6 @@ function EnzymeRules.reverse(
     end
     !is_inactive(config, A) && !is_inactive(config, C) && project_add!(A.dval, C.dval, conj(αval))
     !is_inactive(config, C) && scale!(C.dval, conj(βval))
-    if isa(α, Duplicated)
-
-    end
     return (nothing, nothing, Δα, Δβ)
 end
 
