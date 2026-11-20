@@ -22,7 +22,7 @@ end
     @test z isa JLVector{Float64}
     @test all(iszero, deepcollect(z))
     @test all(deepcollect(z) .=== zero(scalartype(x)))
-    z1 = @constinferred zerovector!!(x)
+    z1 = @constinferred zerovector!!(deepcopy(x))
     @test z1 isa JLVector{Float64}
     @test all(deepcollect(z1) .=== zero(scalartype(x)))
 
@@ -44,10 +44,10 @@ end
         @test z isa JLVector{Float64}
         @test all(deepcollect(z) .== deepcollect(x) .* α)
 
-        z2 = @constinferred scale!!(x, α)
+        z2 = @constinferred scale!!(deepcopy(x), α)
         @test z2 isa JLVector{Float64}
         @test deepcollect(z2) ≈ deepcollect(x) .* deepcollect(α)
-        z2 = @constinferred scale!!(y, x, α)
+        z2 = @constinferred scale!!(deepcopy(y), x, α)
         @test z2 isa JLVector{Float64}
         @test deepcollect(z2) ≈ deepcollect(x) .* deepcollect(α)
     end
@@ -86,12 +86,12 @@ end
         z = add(y, x, α, β)
         @test deepcollect(z) ≈ muladd.(deepcollect(x), α, deepcollect(y) .* β)
 
-        z2 = @constinferred add!!(y, x)
+        z2 = @constinferred add!!(deepcopy(y), x)
         @test z2 isa JLVector{Float64}
         @test deepcollect(z2) ≈ (deepcollect(x) .+ deepcollect(y))
-        z2 = @constinferred add!!(y, x, α)
+        z2 = @constinferred add!!(deepcopy(y), x, α)
         @test deepcollect(z2) ≈ (muladd.(deepcollect(x), α, deepcollect(y)))
-        z2 = @constinferred add!!(y, x, α, β)
+        z2 = @constinferred add!!(deepcopy(y), x, α, β)
         @test deepcollect(z2) ≈ (muladd.(deepcollect(x), α, deepcollect(y) .* β))
     end
 

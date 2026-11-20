@@ -172,7 +172,7 @@ if CUDA.functional()
                 (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
             )
             s2 = @testinferred inner(scale(x, α), scale(y, β))
-            @test convert(Float64, s2) ≈ inner(deepcollect(α)[] .* deepcollect(x), deepcollect(β)[] .* deepcollect(y))
+            @test convert(ComplexF64, s2) ≈ inner(deepcollect(α)[] .* deepcollect(x), deepcollect(β)[] .* deepcollect(y))
         end
     end
 

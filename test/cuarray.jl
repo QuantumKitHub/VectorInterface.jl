@@ -24,7 +24,7 @@ if CUDA.functional()
         @test z isa CuVector{Float64}
         @test all(iszero, deepcollect(z))
         @test all(deepcollect(z) .=== zero(scalartype(x)))
-        z1 = @testinferred zerovector!!(x)
+        z1 = @testinferred zerovector!!(deepcopy(x))
         @test z1 isa CuVector{Float64}
         @test all(deepcollect(z1) .=== zero(scalartype(x)))
 
@@ -46,10 +46,10 @@ if CUDA.functional()
             @test z isa CuVector{Float64}
             @test all(deepcollect(z) .== deepcollect(x) .* deepcollect(α))
 
-            z2 = @testinferred scale!!(x, α)
+            z2 = @testinferred scale!!(deepcopy(x), α)
             @test z2 isa CuVector{Float64}
             @test deepcollect(z2) ≈ deepcollect(x) .* deepcollect(α)
-            z2 = @testinferred scale!!(y, x, α)
+            z2 = @testinferred scale!!(deepcopy(y), x, α)
             @test z2 isa CuVector{Float64}
             @test deepcollect(z2) ≈ deepcollect(x) .* deepcollect(α)
         end
@@ -147,7 +147,7 @@ if CUDA.functional()
                 (Scalar(CuVector([randn(ComplexF64)])), Scalar(CuVector([randn(ComplexF64)]))),
             )
             s2 = @testinferred inner(scale(x, α), scale(y, β))
-            @test convert(Float64, s2) ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
+            @test convert(ComplexF64, s2) ≈ inner(deepcollect(α) .* deepcollect(x), deepcollect(β) .* deepcollect(y))
         end
     end
 
