@@ -27,7 +27,7 @@ Base.:*(α::Number, s::Scalar) = Scalar(scale(s.a, α))
 Base.:*(s1::Scalar, s2::Scalar) = Scalar(s1.a .* s2.a)
 Base.:/(s::Scalar, α::Number) = Scalar(s.a ./ α)
 Base.:/(s::Scalar, α::One) = s
-Base.:/(s::Scalar, α::Zero) = throw(DivideError()) 
+Base.:/(s::Scalar, α::Zero) = throw(DivideError())
 Base.:/(α::One, s::Scalar) = inv(s)
 Base.:/(α::Zero, s::Scalar) = s * α
 Base.:/(α::Number, s::Scalar) = scale(inv(s), α)
@@ -61,6 +61,8 @@ Base.conj(s::Scalar) = Scalar(Base.conj.(s.a))
 Base.rtoldefault(::Type{<:Scalar{T}}) where {T} = Base.rtoldefault(T)
 Base.isapprox(x::Scalar, y::Number; kwargs...) = all(_x -> isapprox(_x, y; kwargs...), x.a)
 Base.isapprox(x::Scalar, y::Scalar; kwargs...) = all(splat((a, b) -> isapprox(a, b; kwargs...)), zip(x.a, y.a))
+
+Base.eps(::Type{<:Scalar{T}}) where {T} = eps(T)
 
 # split this in two to avoid ambiguity
 (::Type{T})(s::Scalar) where {T <: Real} = T(first(collect(s.a)))
