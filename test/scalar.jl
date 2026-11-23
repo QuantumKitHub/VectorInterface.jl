@@ -6,6 +6,11 @@ using VectorInterface
     @test s * 0.5 == Scalar{Float64, Vector{Float64}}(One())
     @test s * Scalar([0.5]) == Scalar{Float64, Vector{Float64}}(One())
     @test s * One() === One() * s === s
+    @test s / One() === s
+    @test One() / s == inv(s)
+    @test s / 0.5 == Scalar{Float64, Vector{Float64}}([4.0])
+    @test s / Scalar([0.5]) == Scalar{Float64, Vector{Float64}}([4.0])
+    @test 0.5 / s == Scalar{Float64, Vector{Float64}}([0.25])
     @test s * Zero() == Zero() * s == Scalar{Float64, Vector{Float64}}(Zero())
     @test s + Zero() === Zero() + s === s
     @test s + 2s == Scalar{Float64, Vector{Float64}}(6.0)
