@@ -23,12 +23,16 @@ using VectorInterface
     @test -s == Scalar{Float64, Vector{Float64}}(-2.0)
     @test inv(s) == Scalar{Float64, Vector{Float64}}(0.5)
     @test iszero(s * Zero())
+    @test hypot(s) == Scalar([hypot(2.0)])
+    @test hypot(s, 2.0) == Scalar([hypot(2.0, 2.0)])
+    @test hypot(s, 2.0, 4.0) == Scalar([hypot(2.0, 2.0, 4.0)])
     s2 = Scalar(fill(2.0, 1, 1))
     @test s2 isa Scalar{Float64, Vector{Float64}}
     @test s2 == s
-
+    
     sc = Scalar([4.0 - 5.0 * im])
     @test real(sc) == Scalar{ComplexF64, Vector{ComplexF64}}(4.0)
     @test imag(sc) == Scalar([-5.0])
     @test conj(sc) == Scalar([4.0 + 5.0im])
+
 end

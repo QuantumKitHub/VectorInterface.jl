@@ -48,6 +48,9 @@ Base.inv(s::Scalar) = Scalar(inv.(s.a))
 Base.abs(s::Scalar) = Scalar(abs.(s.a))
 Base.isless(s::Scalar{T}, v::T) where {T <: Number} = all(Base.Fix2(isless, v), s.a)
 Base.copyto!(s::Scalar, v) = (s.a .= v; return s)
+Base.hypot(x::Scalar) = Scalar(hypot.(x.a))
+Base.hypot(x::Scalar, y::Number) = Scalar(hypot.(x.a, y))
+Base.hypot(x::Scalar, ys::Number...) = Scalar(hypot.(x.a, ys...))
 
 Base.broadcastable(s::Scalar) = s.a
 
