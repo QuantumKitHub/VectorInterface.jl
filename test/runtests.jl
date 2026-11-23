@@ -16,7 +16,7 @@ fast = !isnothing(args.custom["fast"])
 
 # On Buildkite (GPU CI runner): only run CUDA and AMDGPU tests
 if get(ENV, "BUILDKITE", "false") == "true"
-    f(str) = startswith(first(str), "cuda") || startswith(first(str), "amd")
+    f(str) = startswith(first(str), "cuarray") || startswith(first(str), "rocarray")
     filter!(f, testsuite)
 end
 

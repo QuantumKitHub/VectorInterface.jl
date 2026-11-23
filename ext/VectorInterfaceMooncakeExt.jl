@@ -30,6 +30,19 @@ _needs_tangent(x) = _needs_tangent(typeof(x))
 _needs_tangent(::Type{T}) where {T <: Number} =
     Mooncake.rdata_type(Mooncake.tangent_type(T)) !== NoRData
 
+scalar_tangent(Δα) = Δα
+scalar_tangent(Δα::Mooncake.MutableTangent{<:NamedTuple{(:a,)}}) = Scalar(Δα.fields.a)
+
+function scalar_rdata!(α_Δα::CoDual{<:Number}, f)
+    α = primal(α_Δα)
+    return _needs_tangent(α) ? project_scalar(α, f()) : NoRData()
+end
+function scalar_rdata!(α_Δα::CoDual{<:Scalar}, f)
+    α, Δα = extract(α_Δα)
+    Δα.fields.a .+= project_scalar(zero(scalartype(α)), f())
+    return NoRData()
+end
+
 # scale
 # -----
 @is_primitive DefaultCtx Tuple{typeof(scale!), AbstractArray, Number}
@@ -44,7 +57,7 @@ function Mooncake.rrule!!(::CoDual{typeof(scale!)}, C_ΔC::CoDual, α_Δα::CoDu
 
     function scale_pullback(::NoRData)
         copy!(C, C_cache)
-        Δαr = _needs_tangent(α) ? project_scalar(α, inner(C, ΔC)) : NoRData()
+        Δαr = scalar_rdata!(α_Δα, () -> inner(C, ΔC))
         scale!(ΔC, conj(α))
         return NoRData(), NoRData(), Δαr
     end
@@ -55,7 +68,8 @@ end
 function Mooncake.frule!!(::Dual{typeof(scale!)}, C_ΔC::Dual, α_Δα::Dual{<:Number})
     # prepare arguments
     C, ΔC = arrayify(C_ΔC)
-    α, Δα = extract(α_Δα)
+    α = primal(α_Δα)
+    Δα = scalar_tangent(Mooncake.tangent(α_Δα))
 
     if !isa(Δα, NoTangent)
         add!(ΔC, C, Δα, α)
@@ -82,7 +96,7 @@ function Mooncake.rrule!!(::CoDual{typeof(scale!)}, C_ΔC::CoDual, A_ΔA::CoDual
     function scale_pullback(::NoRData)
         copy!(C, C_cache)
         project_add!(ΔA, ΔC, conj(α))
-        Δαr = _needs_tangent(α) ? project_scalar(α, inner(A, ΔC)) : NoRData()
+        Δαr = scalar_rdata!(α_Δα, () -> inner(A, ΔC))
         zerovector!(ΔC)
         return NoRData(), NoRData(), NoRData(), Δαr
     end
@@ -94,7 +108,8 @@ function Mooncake.frule!!(::Dual{typeof(scale!)}, C_ΔC::Dual, A_ΔA::Dual, α_�
     # prepare arguments
     C, ΔC = arrayify(C_ΔC)
     A, ΔA = arrayify(A_ΔA)
-    α, Δα = extract(α_Δα)
+    α = primal(α_Δα)
+    Δα = scalar_tangent(Mooncake.tangent(α_Δα))
 
     scale!(ΔC, ΔA, α)
     !isa(Δα, NoTangent) && add!(ΔC, A, Δα, One())
@@ -121,8 +136,8 @@ function Mooncake.rrule!!(::CoDual{typeof(add!)}, C_ΔC::CoDual, A_ΔA::CoDual, 
     function add_pullback(::NoRData)
         copy!(C, C_cache)
 
-        Δαr = _needs_tangent(α) ? project_scalar(α, inner(A, ΔC)) : NoRData()
-        Δβr = _needs_tangent(β) ? project_scalar(β, inner(C, ΔC)) : NoRData()
+        Δαr = scalar_rdata!(α_Δα, () -> inner(A, ΔC))
+        Δβr = scalar_rdata!(β_Δβ, () -> inner(C, ΔC))
         project_add!(ΔA, ΔC, conj(α))
         scale!(ΔC, conj(β))
 
@@ -136,8 +151,10 @@ function Mooncake.frule!!(::Dual{typeof(add!)}, C_ΔC::Dual, A_ΔA::Dual, α_Δ�
     # prepare arguments
     C, ΔC = arrayify(C_ΔC)
     A, ΔA = arrayify(A_ΔA)
-    α, Δα = extract(α_Δα)
-    β, Δβ = extract(β_Δβ)
+    α = primal(α_Δα)
+    Δα = scalar_tangent(Mooncake.tangent(α_Δα))
+    β = primal(β_Δβ)
+    Δβ = scalar_tangent(Mooncake.tangent(β_Δβ))
     add!(ΔC, ΔA, α, β)
     !isa(Δα, NoTangent) && add!(ΔC, A, Δα, One())
     !isa(Δβ, NoTangent) && add!(ΔC, C, Δβ, One())

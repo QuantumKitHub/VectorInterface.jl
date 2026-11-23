@@ -63,7 +63,10 @@ function EnzymeRules.reverse(
         α::Annotation{<:Number},
     ) where {RT}
     αval, Cval = cache
-    Δα = if !isa(α, Const) && !is_inactive(config, C)
+    Δα = if isa(α, Duplicated) && !is_inactive(config, C)
+        α.dval .+= project_scalar(α.val, inner(Cval, C.dval))
+        nothing
+    elseif !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Cval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
@@ -127,7 +130,10 @@ function EnzymeRules.reverse(
     ) where {RT}
     Aval, αval = cache
     !is_inactive(config, A) && !is_inactive(config, C) && project_add!(A.dval, C.dval, conj(αval))
-    Δα = if !isa(α, Const) && !is_inactive(config, C)
+    Δα = if isa(α, Duplicated) && !is_inactive(config, C)
+        α.dval .+= project_scalar(α.val, inner(Aval, C.dval))
+        nothing
+    elseif !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Aval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
@@ -194,14 +200,20 @@ function EnzymeRules.reverse(
         β::Annotation{<:Number},
     ) where {RT}
     Aval, αval, βval, Cval = cache
-    Δα = if !isa(α, Const) && !is_inactive(config, C)
+    Δα = if isa(α, Duplicated) && !is_inactive(config, C)
+        α.dval .+= project_scalar(α.val, inner(Aval, C.dval))
+        nothing
+    elseif !isa(α, Const) && !is_inactive(config, C)
         project_scalar(α.val, inner(Aval, C.dval))
     elseif !isa(α, Const)
         zero(α.val)
     else
         nothing
     end
-    Δβ = if !isa(β, Const) && !is_inactive(config, C)
+    Δβ = if isa(β, Duplicated) && !is_inactive(config, C)
+        β.dval .+= project_scalar(β.val, inner(Cval, C.dval))
+        nothing
+    elseif !isa(β, Const) && !is_inactive(config, C)
         project_scalar(β.val, inner(Cval, C.dval))
     elseif !isa(β, Const)
         zero(β.val)

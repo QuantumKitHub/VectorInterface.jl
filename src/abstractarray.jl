@@ -6,6 +6,15 @@ const BLASVector{T <: BlasFloat} = Union{DenseArray{T}, StridedVector{T}}
 #------------
 scalartype(::Type{A}) where {T, A <: AbstractArray{T}} = scalartype(T) # recursive
 
+_blasscalar(::Type{T}, α::Number) where {T} = convert(T, α)
+_blasscalar(::Type{T}, α::Scalar{T}) where {T} = α
+_blasscalar(::Type{T}, α::Scalar) where {T} = Scalar(convert.(T, α.a))
+
+# When broadcasting over an array of nested vectors, scalars (in particular a `Scalar`,
+# whose `broadcastable` is its underlying array) must be passed whole to each element.
+_bc(::AbstractArray{<:Number}, α) = α
+_bc(::AbstractArray, α) = Ref(α)
+
 # zerovector & zerovector!!
 #---------------------------
 # because broadcasting treats zero-dimensional arrays special
@@ -36,14 +45,18 @@ zerovector!!(x::AbstractArray) = zerovector!(x)
 # scale, scale! & scale!!
 #-------------------------
 # because broadcasting treats zero-dimensional arrays special, use map
+
+scale(x::BLASVector, α::Scalar) = x .* α
+# handle 0-dimensional arrays properly
+scale(x::DenseArray{T, 0}, α::Scalar) where {T} = map(Base.Fix2(scale, α), x)
 scale(x::AbstractArray, α::Number) = map(Base.Fix2(scale, α), x)
 function scale!(x::AbstractArray, α::Number)
     α === One() && return x
-    x .= scale!!.(x, α)
+    x .= scale!!.(x, _bc(x, α))
     return x
 end
 function scale!(y::AbstractArray, x::AbstractArray, α::Number)
-    y .= scale!!.(y, x, α)
+    y .= scale!!.(y, x, _bc(y, α))
     return y
 end
 
@@ -52,20 +65,27 @@ function scale!!(x::AbstractArray, α::Number)
     if promote_scale(x, α) <: scalartype(x)
         return scale!(x, α)
     else
-        return scale!!.(x, α)
+        return scale!!.(x, _bc(x, α))
     end
 end
 function scale!!(y::AbstractArray, x::AbstractArray, α::Number)
     if promote_scale(y, x, α) <: scalartype(y)
         return scale!(y, x, α)
     else
-        return scale!!.(y, x, α)
+        return scale!!.(y, x, _bc(y, α))
     end
 end
 
 # add, add! & add!!
 #-------------------
-# because broadcasting treats zero-dimensional arrays special, use map
+function add(y::BLASVector, x::BLASVector, α::Number, β::Number)
+    return @. β * y + α * x
+end
+# resolve ambiguity and handle 0-dimensional arrays properly
+function add(y::DenseArray{T, 0}, x::BLASVector, α::Number, β::Number) where {T}
+    _add(y, x) = add(y, x, α, β)
+    return map(_add, y, x)
+end
 function add(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     _add(y, x) = add(y, x, α, β)
     return map(_add, y, x)
@@ -76,11 +96,11 @@ function add!(
         y::BLASVector{T}, x::BLASVector{T}, α::Number, β::Number
     ) where {T <: BlasFloat}
     if β === One()
-        LinearAlgebra.axpy!(convert(T, α), x, y)
+        LinearAlgebra.axpy!(_blasscalar(T, α), x, y)
     elseif β === Zero() || β === false
-        scale!(y, x, convert(T, α))
+        scale!(y, x, _blasscalar(T, α))
     else
-        LinearAlgebra.axpby!(convert(T, α), x, convert(T, β), y)
+        LinearAlgebra.axpby!(_blasscalar(T, α), x, _blasscalar(T, β), y)
     end
     return y
 end
@@ -89,7 +109,7 @@ function add!(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
     ax = axes(x)
     ay = axes(y)
     ax == ay || throw(DimensionMismatch("Output axes $ay differ from input axes $ax"))
-    y .= add!!.(y, x, α, β) # might error
+    y .= add!!.(y, x, _bc(y, α), _bc(y, β)) # might error
     return y
 end
 
@@ -100,20 +120,20 @@ function add!!(y::AbstractArray, x::AbstractArray, α::Number, β::Number)
         ax = axes(x)
         ay = axes(y)
         ax == ay || throw(DimensionMismatch("Output axes $ay differ from input axes $ax"))
-        return add!!.(y, x, α, β)
+        return add!!.(y, x, _bc(y, α), _bc(y, β))
     end
 end
 
 # inner
 #-------
-function inner(x::BLASVector{T}, y::BLASVector{T}) where {T <: BlasFloat}
-    return LinearAlgebra.dot(x, y)
+function inner(x::BLASVector, y::BLASVector)
+    return LinearAlgebra.dot(vec(x), vec(y))
 end
 function inner(x::AbstractArray, y::AbstractArray)
     ax = axes(x)
     ay = axes(y)
     ax == ay || throw(DimensionMismatch("Non-matching axes $ax and $ay"))
     T = promote_inner(x, y)
-    return mapreduce(inner, +, x, y; init = zero(T))
     # this version is friendlier to GPU arrays with mixed element types
+    return mapreduce(inner, +, x, y; init = zero(T))
 end

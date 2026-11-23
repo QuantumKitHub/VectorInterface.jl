@@ -32,7 +32,21 @@ eltypes = (Float64, ComplexF64)
         test_forward(scale!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα); atol, rtol)
     end
 
+    # Scalar
+    α = Scalar([randn(T)])
+    for Tα in (Const, Duplicated)
+        test_reverse(scale, Duplicated, (x, Duplicated), (α, Tα); atol, rtol)
+        test_reverse(scale!!, Duplicated, (x, Duplicated), (α, Tα); atol, rtol)
+        test_reverse(scale!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα); atol, rtol)
+    end
+    for Tα in (Const, Duplicated)
+        test_forward(scale, Duplicated, (x, Duplicated), (α, Tα); atol, rtol)
+        test_forward(scale!!, Duplicated, (x, Duplicated), (α, Tα); atol, rtol)
+        test_forward(scale!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα); atol, rtol)
+    end
+
     # MinimalMVec
+    α = randn(T)
     mx = MinimalMVec(x)
     my = MinimalMVec(y)
     for Tα in (Const, Active)
@@ -79,10 +93,22 @@ end
         test_forward(add, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
         test_forward(add!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
     end
-
+    # Scalar
+    α = Scalar([randn(T)])
+    β = Scalar([randn(T)])
+    for Tα in (Const, Duplicated), Tβ in (Const, Duplicated)
+        test_reverse(add, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
+        test_reverse(add!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
+    end
+    for Tα in (Const, Duplicated), Tβ in (Const, Duplicated)
+        test_forward(add, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
+        test_forward(add!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
+    end
     # MinimalMVec
     mx = MinimalMVec(x)
     my = MinimalMVec(y)
+    α = randn(T)
+    β = randn(T)
     for Tα in (Const, Active), Tβ in (Const, Active)
         test_reverse(add, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
         test_reverse(add!!, Duplicated, (y, Duplicated), (x, Duplicated), (α, Tα), (β, Tβ); atol, rtol)
